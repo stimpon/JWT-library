@@ -9,6 +9,8 @@
     /// </summary>
     public static class ExtensionMethods
     {
+        #region Convert to Base64Url
+
         /// <summary>
         /// Converts to bas64url.
         /// </summary>
@@ -44,6 +46,10 @@
             return Base64String;
         }
 
+        #endregion
+
+        #region Convert to Base64Url
+
         /// <summary>
         /// Converts to bas64url.
         /// </summary>
@@ -51,12 +57,29 @@
         /// <returns></returns>
         public static byte[] FromBase64Url(this string S)
         {
-            // Go through all forbidden characters in the dictionary
+            // Go through all character mappings in the dictionary
             foreach (var p in Data.UrlCharMappings)
                 S = S.Replace(p.Value, p.Key); // Replace the URL safe character with the actual base64 character
 
             // Return the string
             return Convert.FromBase64String(S);
         }
+
+        /// <summary>
+        /// Converts a Base64Url to a standard Base64.
+        /// </summary>
+        /// <param name="s">The s.</param>
+        /// <returns></returns>
+        public static byte[] ToStandardBase64(this string S)
+        {
+            // Go through all character mappings in the dictionary
+            foreach (var p in Data.UrlCharMappings)
+                S = S.Replace(p.Value, p.Key); // Repalce Url safe characters with original Base64 characters
+
+            // Return the converted byte array
+            return Encoding.Default.GetBytes(S);
+        }
+
+        #endregion
     }
 }

@@ -22,7 +22,7 @@ namespace JWTLib
         /// <param name="algType">the algorithm type to use.</param>
         /// <param name="useEncryption">Determines if the JWT should be encrypted (If true, the token will be encrypted and then signed)</param>
         /// <returns></returns>
-        public static JWTResult CreateUsingRSA(object payload, RSAParameters param, RSATypes algType)
+        public static JWTCreationResult CreateUsingRSA(object payload, RSAParameters param, RSATypes algType)
         {
             // Create header for JWS
             JWSHeader header = new JWSHeader()
@@ -48,7 +48,7 @@ namespace JWTLib
                 provider.ImportParameters(param);
 
                 // If only private key is present
-                if (provider.PublicOnly) return new JWTResult(null, Results.MissingPrivateKey); // Return error result
+                if (provider.PublicOnly) return new JWTCreationResult(null, Results.MissingPrivateKey); // Return error result
 
                 // Create the signature and create hash
                 signature = provider.SignData(Encoding.Default.GetBytes(unsignedJWT), Data.Hashers[(int)algType]).ToBase64Url();
@@ -58,7 +58,7 @@ namespace JWTLib
             }
 
             // Returned the creation result
-            return new JWTResult(signedJWT, Results.OK);
+            return new JWTCreationResult(signedJWT, Results.OK);
         }
 
         /// <summary>
@@ -95,6 +95,42 @@ namespace JWTLib
             }
             // If errors occurred when verifying JWT...
             catch { return Results.Failed; } // JWT is invalid
+        }
+
+        /// <summary>
+        /// Pulls the header.
+        /// </summary>
+        /// <param name="JWT">The JWT.</param>
+        /// <returns>The Header</returns>
+        public static JWSDecodedResult Decode(string JWT)
+        {
+            // Try to decode all parts of the JWT...
+            try
+            {
+                // Pull the header form the JWT
+                var header = JsonConvert.DeserializeObject<JWSHeader>(Encoding.Default.GetString(JWT.Split('.')[0].FromBase64Url()));
+
+                // Pull the payload from the JWT
+                var payload = Encoding.Default.GetString(JWT.Split('.')[1].FromBase64Url());
+
+                // Pull the signature from the JWT
+                var signature = Encoding.Default.GetString(JWT.Split('.')[2].ToStandardBase64());
+
+                // Return the decoded JWT as an object
+                return new JWSDecodedResult()
+                {
+                    Header    = header,     // Set the header
+                    Payload   = payload,    // Set the payload
+                    Signature = signature,  // Set the signature
+                    Result    = Results.OK  // Set the result
+                };
+            }
+            // If decode failed...
+            catch
+            {
+                // Return error result
+                return new JWSDecodedResult() { Result = Results.InvalidJWT };
+            }
         }
     }
 }
