@@ -1,9 +1,12 @@
 ﻿namespace JWTLib
 {
+    // Required namespaces
+    using System.ComponentModel;
+
     /// <summary>
     /// Contains all RSA algorithms for JWS
     /// </summary>
-    public enum RSATypes
+    public enum JWSRSAAlgorithmTypes
     {
         /// <summary>
         /// RSASSA-PKCS1-v1_5 using SHA256 (RECOMENDED)
@@ -20,27 +23,15 @@
     }
 
     /// <summary>
-    /// Contains all available types for JWE
+    /// Contains 
     /// </summary>
-    public enum EncryptionTypes
+    public enum JWERSAAlgorithmTypes
     {
         /// <summary>
-        /// No encryption
+        /// The RSA oaep
         /// </summary>
-        None = 99,
-
-        /// <summary>
-        /// Aes encryptor with a key size of 123 bits
-        /// </summary>
-        AES128 = 0,
-        /// <summary>
-        /// Aes encryptor with a key size of 192 bits
-        /// </summary>
-        AES192 = 1,
-        /// <summary>
-        /// Aes encryptor with a key size of 256 bits
-        /// </summary>
-        AES256 = 2
+        [Description("A256GCM")] // Describes what encryption algorithm to use with this type
+        RSA_OAEP = 0,
     }
 
     /// <summary>

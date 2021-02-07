@@ -1,18 +1,15 @@
 ﻿namespace JWTLib
 {
-    /// <summary>
-    /// Header object
-    /// </summary>
-    public class JWSHeader
+    public interface IHeader
     {
         /// <summary>
         /// Gets or sets the type.
         /// </summary>
-        public string typ { get; set; }
+        abstract string typ { get; set; }
 
         /// <summary>
         /// Gets or sets the cryptographic algorithm.
         /// </summary>
-        public string alg { get; set; }
+        abstract string alg { get; set; }
     }
 }

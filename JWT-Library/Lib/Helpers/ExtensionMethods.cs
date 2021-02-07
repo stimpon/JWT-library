@@ -45,6 +45,23 @@
             // Return the string
             return Base64String;
         }
+        /// <summary>
+        /// Converts to bas64url.
+        /// </summary>
+        /// <param name="S">The string.</param>
+        /// <returns></returns>
+        public static string ToBase64Url(this Span<byte> B)
+        {
+            // Convert string to a normal Base64 string
+            string Base64String = Convert.ToBase64String(B);
+
+            // Go through all forbidden characters in the dictionary
+            foreach (var p in Data.UrlCharMappings)
+                Base64String = Base64String.Replace(p.Key, p.Value); // Replace the forbidden character with the valid character
+
+            // Return the string
+            return Base64String;
+        }
 
         #endregion
 

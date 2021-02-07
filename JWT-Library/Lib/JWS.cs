@@ -22,7 +22,7 @@ namespace JWTLib
         /// <param name="algType">the algorithm type to use.</param>
         /// <param name="useEncryption">Determines if the JWT should be encrypted (If true, the token will be encrypted and then signed)</param>
         /// <returns></returns>
-        public static JWTCreationResult CreateUsingRSA(object payload, RSAParameters param, RSATypes algType)
+        public static JWTCreationResult CreateUsingRSA(object payload, RSAParameters param, JWSRSAAlgorithmTypes algType)
         {
             // Create header for JWS
             JWSHeader header = new JWSHeader()
@@ -67,7 +67,7 @@ namespace JWTLib
         /// <param name="JWT">The JWT.</param>
         /// <param name="param">The RSA public</param>
         /// <returns></returns>
-        public static Results Verify(string JWT, RSAParameters param, RSATypes algType)
+        public static Results Verify(string JWT, RSAParameters param, JWSRSAAlgorithmTypes algType)
         {
             // If not all parts exist
             if (JWT.Split('.').Length != 3) return Results.InvalidJWT; // The JWT is invalid
@@ -98,7 +98,8 @@ namespace JWTLib
         }
 
         /// <summary>
-        /// Pulls the header.
+        /// Decodes the JWT and returns an object containing the <see cref="JWSHeader"/>, 
+        /// Payload as a JSON object, signature as a Base64Url string and a decode result.
         /// </summary>
         /// <param name="JWT">The JWT.</param>
         /// <returns>The Header</returns>
@@ -114,7 +115,7 @@ namespace JWTLib
                 var payload = Encoding.Default.GetString(JWT.Split('.')[1].FromBase64Url());
 
                 // Pull the signature from the JWT
-                var signature = Encoding.Default.GetString(JWT.Split('.')[2].ToStandardBase64());
+                var signature = JWT.Split('.')[2].ToBase64Url();
 
                 // Return the decoded JWT as an object
                 return new JWSDecodedResult()
