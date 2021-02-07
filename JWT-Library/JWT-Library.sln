@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JWT-Library", "JWT-Library.csproj", "{F62E6A5E-C34C-43AC-AF61-C783339C4CB9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LIbTester", "..\LIbTester\LIbTester.csproj", "{298EDE0E-7308-4A06-A3CF-BD5EC96061AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{F62E6A5E-C34C-43AC-AF61-C783339C4CB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F62E6A5E-C34C-43AC-AF61-C783339C4CB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F62E6A5E-C34C-43AC-AF61-C783339C4CB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{298EDE0E-7308-4A06-A3CF-BD5EC96061AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{298EDE0E-7308-4A06-A3CF-BD5EC96061AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{298EDE0E-7308-4A06-A3CF-BD5EC96061AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{298EDE0E-7308-4A06-A3CF-BD5EC96061AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
