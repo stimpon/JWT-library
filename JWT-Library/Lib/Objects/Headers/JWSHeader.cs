@@ -1,9 +1,9 @@
 ﻿namespace JWTLib
 {
     /// <summary>
-    /// Header object
+    /// Header object, can be expanded with more attributes
     /// </summary>
-    public class JWSHeader: IHeader
+    public partial class JWSHeader: IHeader
     {
         /// <summary>
         /// <see cref="IHeader.typ"/>

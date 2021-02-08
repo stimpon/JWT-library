@@ -1,10 +1,10 @@
 ﻿namespace JWTLib
 {
     /// <summary>
-    /// Header for a JWT token using JWE with RSA
+    /// Header for a JWT token using JWE with RSA, can be expanded with more attributes
     /// </summary>
     /// <seealso cref="JWTLib.IJWEHeader" />
-    public class JWEHeader : IJWEHeader
+    public partial class JWERSAHeader : IJWEHeader
     {
         /// <summary>
         /// <see cref="IJWEHeader.typ"/>

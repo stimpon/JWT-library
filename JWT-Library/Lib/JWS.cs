@@ -48,7 +48,7 @@ namespace JWTLib
                 provider.ImportParameters(param);
 
                 // If only private key is present
-                if (provider.PublicOnly) return new JWTCreationResult(null, Results.MissingPrivateKey); // Return error result
+                if (provider.PublicOnly) return new JWTCreationResult(null, Results.MissingPrivateKey); // Return error result 
 
                 // Create the signature and create hash
                 signature = provider.SignData(Encoding.Default.GetBytes(unsignedJWT), Data.Hashers[(int)algType]).ToBase64Url();

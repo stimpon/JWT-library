@@ -54,6 +54,10 @@
         /// <summary>
         /// Gets returned if the JWT could not be verified
         /// </summary>
-        Failed
+        Failed,
+        /// <summary>
+        /// Gets returned if the payload is empty or null
+        /// </summary>
+        EmptyPayload
     }
 }

@@ -110,39 +110,31 @@ namespace JWTLib
         #region Public functions
 
         /// <summary>
-        /// Set the payload, this should be a class. This will then be converted to JSON an will be the ciphertext in the JWT
+        /// Set the payload, this could be another signed JWT or an object containing claims. This will be the ciphertext in the JWT
         /// </summary>
         /// <param name="payload">The payload.</param>
+        /// <param name="serialize">If the payload is an object the set serialize to <c>true<c> </param>
         /// <returns>
         ///     True:  Payload was set
         ///     False: Payload could not be set
         /// </returns>
-        public bool SetPayload(object payload)
+        public bool SetPayload(object payload, bool serialize = false)
         {
-            // Serialize the payload
-            var obj = JsonConvert.SerializeObject(payload);
-
-            // Set the payload
-            this.Payload = obj;
+            // If object should be serialized...
+            if (serialize)
+            {
+                // Serialize the payload
+                var obj = JsonConvert.SerializeObject(payload);
+                // Set the payload
+                this.Payload = obj;
+            }
+            // Else just set the payload as is...
+            else
+            {
+                this.Payload = payload.ToString();
+            }
 
             // Payload was set successfuly
-            return true;
-        }
-
-        /// <summary>
-        /// Sets the unprotected header.
-        /// </summary>
-        /// <param name="unprotected">The header object, this object will be conerted into a JSON object.</param>
-        /// <returns></returns>
-        private bool SetUnprotectedHeader(object unprotected)
-        {
-            // Serialize the unprotected header
-            var obj = JsonConvert.SerializeObject(unprotected);
-
-            // Set the unprotected header
-            this.UnprotectedHeader = obj;
-
-            // Unprotected header was set successfuly
             return true;
         }
 
@@ -160,7 +152,7 @@ namespace JWTLib
             var attr = field.GetCustomAttributes(typeof(DescriptionAttribute), true);
 
             // Create the JWE header
-            this.ProtectedHeader = new JWEHeader()
+            this.ProtectedHeader = new JWERSAHeader()
             {
                 typ = "JWT",
                 alg = type.ToString().Replace('_', '-'),
@@ -192,6 +184,9 @@ namespace JWTLib
         /// </returns>
         public JWECreationResult Build()
         {
+            // If the payload is empty...
+            if (String.IsNullOrEmpty(this.Payload)) return new JWECreationResult() { Result = Results.EmptyPayload }; // Return error
+
             // Check what algorithm to use...
             if (RSA_OAEP_MODE)
             {
@@ -202,42 +197,50 @@ namespace JWTLib
                 // Create an encryptor
                 using(var encryptor = GetAesGCMEncryptor(this.Type))
                 {
-                    // Create placeholder for the IV/NONCE
-                    byte[] NONCE = new byte[12];
-
-                    // Create a random number generator for the NONE/IV
-                    using(var RNG = RandomNumberGenerator.Create())
+                    // Try to build the compact JWT JWE
+                    try
                     {
-                        // Fill IV/NONCE array with 12 random bytes
-                        RNG.GetBytes(NONCE);
+                        // Create placeholder for the IV/NONCE
+                        byte[] NONCE = new byte[12];
+
+                        // Create a random number generator for the NONE/IV
+                        using(var RNG = RandomNumberGenerator.Create())
+                        {
+                            // Fill IV/NONCE array with 12 random bytes
+                            RNG.GetBytes(NONCE);
+                        }
+
+                        // Arrays to put the ciphertext, tag and protected header in
+                        byte[] cipherText = new byte[Payload.Length];
+                        byte[] tag = new byte[16];
+                        byte[] protected_header = Encoding.Default.GetBytes(JsonConvert.SerializeObject(ProtectedHeader));
+
+                        // Create spans for the encryptor
+                        Span<byte> cipherTextSpan = new Span<byte>(cipherText),
+                            nonceSpan       = new Span<byte>(NONCE),
+                            payloadSpan     = new Span<byte>(Encoding.UTF8.GetBytes(this.Payload)),
+                            tagSpan         = new Span<byte>(tag),
+                            protectedSpan   = new Span<byte>(protected_header);
+
+                        // Encrypt the payload and get the authentication tag
+                        encryptor.Encrypt(nonceSpan, payloadSpan, cipherTextSpan, tagSpan, protectedSpan);
+
+                        // Create JWE Result
+                        JWECreationResult JWE = new JWECreationResult
+                        {
+                            ProtectedHeader = JsonConvert.SerializeObject(ProtectedHeader).ToBase64Url(),
+                            EncryptedKey    = provider.Encrypt(UnencryptedKey, true).ToBase64Url(),
+                            IV              = nonceSpan.ToBase64Url(),
+                            Ciphertext      = cipherText.ToBase64Url(),
+                            Tag             = tag.ToBase64Url(),
+                            Result          = Results.OK
+                        };
+
+                        // Return the JWE
+                        return JWE;
                     }
-
-                    // Arrays to put the ciphertext and tag in
-                    byte[] cipherText = new byte[Payload.Length];
-                    byte[] tag = new byte[16];
-
-                    // Create spans for the encryptor
-                    Span<byte> cipherTextSpan = new Span<byte>(cipherText), 
-                        nonceSpan   = new Span<byte>(NONCE), 
-                        payloadSpan = new Span<byte>(Encoding.Default.GetBytes(this.Payload)), 
-                        tagSpan     = new Span<byte>(tag);
-
-                    // Encrypt the payload and get the authentication tag
-                    encryptor.Encrypt(nonceSpan, payloadSpan, cipherTextSpan, tagSpan);
-
-                    // Create JWE Result
-                    JWECreationResult JWE = new JWECreationResult
-                    {
-                        ProtectedHeader = JsonConvert.SerializeObject(ProtectedHeader).ToBase64Url(),
-                        EncryptedKey    = provider.Encrypt(UnencryptedKey, true).ToBase64Url(),
-                        IV              = nonceSpan.ToBase64Url(),
-                        Ciphertext      = cipherText.ToBase64Url(),
-                        Tag             = tag.ToBase64Url(),
-                        Result          = Results.OK
-                    };
-
-                    // Return the JWE
-                    return JWE;
+                    // If build failed...
+                    catch { return new JWECreationResult() { Result = Results.Failed }; } // Return error
                 }
             }
 
