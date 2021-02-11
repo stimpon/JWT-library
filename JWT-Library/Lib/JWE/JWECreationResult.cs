@@ -44,11 +44,9 @@
         /// Gets the json representation.
         /// </summary>
         /// <returns></returns>
-        public string GetJsonRepresentation()
-        {
-            // Return this as a Json
-            return JsonConvert.SerializeObject(this);
-        }
+        [JsonIgnore]
+        public string GetJsonRepresentation { get => JsonConvert.SerializeObject(this); }
+        
 
         /// <summary>
         /// Gets or sets the result.

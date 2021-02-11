@@ -1,9 +1,9 @@
 S:\Personal Folder\Visual Studio\Projects\JWT-library\JWT-Library\bin\Debug\netcoreapp3.1\JWT-Library.deps.json
 S:\Personal Folder\Visual Studio\Projects\JWT-library\JWT-Library\bin\Debug\netcoreapp3.1\JWT-Library.dll
 S:\Personal Folder\Visual Studio\Projects\JWT-library\JWT-Library\bin\Debug\netcoreapp3.1\JWT-Library.pdb
-S:\Personal Folder\Visual Studio\Projects\JWT-library\JWT-Library\obj\Debug\netcoreapp3.1\JWT-Library.csprojAssemblyReference.cache
 S:\Personal Folder\Visual Studio\Projects\JWT-library\JWT-Library\obj\Debug\netcoreapp3.1\JWT-Library.AssemblyInfoInputs.cache
 S:\Personal Folder\Visual Studio\Projects\JWT-library\JWT-Library\obj\Debug\netcoreapp3.1\JWT-Library.AssemblyInfo.cs
 S:\Personal Folder\Visual Studio\Projects\JWT-library\JWT-Library\obj\Debug\netcoreapp3.1\JWT-Library.csproj.CoreCompileInputs.cache
 S:\Personal Folder\Visual Studio\Projects\JWT-library\JWT-Library\obj\Debug\netcoreapp3.1\JWT-Library.dll
 S:\Personal Folder\Visual Studio\Projects\JWT-library\JWT-Library\obj\Debug\netcoreapp3.1\JWT-Library.pdb
+S:\Personal Folder\Visual Studio\Projects\JWT-library\JWT-Library\obj\Debug\netcoreapp3.1\JWT-Library.csprojAssemblyReference.cache
