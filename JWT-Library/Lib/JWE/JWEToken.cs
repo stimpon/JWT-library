@@ -48,6 +48,6 @@ namespace JWTLib
         /// </summary>
         /// <returns></returns>
         [JsonIgnore]
-        public string GetJsonRepresentation { get { try { return JsonConvert.SerializeObject(this); } catch { return null; } }}
+        public string Json { get { try { return JsonConvert.SerializeObject(this); } catch { return null; } }}
     }
 }

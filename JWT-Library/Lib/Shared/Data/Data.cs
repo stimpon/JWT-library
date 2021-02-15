@@ -66,6 +66,15 @@ namespace JWTLib
         }
 
         /// <summary>
+        /// Returns a new AesGcm decryptor with the provided secret key
+        /// </summary>
+        /// <typeparam name="Byte">The key.</typeparam>
+        /// <returns></returns>
+        internal static AesGcm GetAesGcmDecryptor(byte[] key) 
+        => 
+        new AesGcm(key);
+
+        /// <summary>
         /// Character mappings for Base64Url strings
         /// </summary>
         internal static Dictionary<char, char> UrlCharMappings = new Dictionary<char, char>()

@@ -45,8 +45,8 @@ namespace JWTLib
         /// </summary>
         /// <param name="JWT">The JWT.</param>
         /// <param name="param">
-        ///     If JWT used RSA fpr signing- set key to the RSA public key<br/>
-        ///     If JWT used HMAC for signing- set key to the secret key (byte[])
+        ///     If RSA was used for signing- set key to the RSA public key<br/>
+        ///     If HMAC was used for signing- set key to the secret key <see cref="byte[]"/>
         /// </param>
         /// <returns>
         ///     <see cref="Results.OK"/>: If JWT could be verified<br/>

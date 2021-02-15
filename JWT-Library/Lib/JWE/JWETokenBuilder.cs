@@ -20,7 +20,7 @@ namespace JWTLib
         /// <summary>
         /// Gets or sets the protected header.
         /// </summary>
-        private IJWEHeader ProtectedHeader { get; set; }
+        private JWEHeader ProtectedHeader { get; set; }
 
         /// <summary>
         /// Gets or sets the unprotected header.
@@ -100,11 +100,11 @@ namespace JWTLib
         public void SetRSAPrivateKey(RSAParameters privateKey)
         {
             // Create the JWE header
-            this.ProtectedHeader = new JWERSAHeader()
+            this.ProtectedHeader = new JWEHeader()
             {
                 typ = "JWT",
-                alg = this.AlgMode.ToString().Replace('_', '-'),
-                enc = this.EncMode.ToString()
+                alg = this.AlgMode,
+                enc = this.EncMode
             };
 
             // Create the RSA crypto provider
