@@ -35,6 +35,37 @@ namespace JWTLib
         };
 
         /// <summary>
+        /// Gets the AesGcm encryptor.
+        /// </summary>
+        /// <param name="keySize">Size of the key.</param>
+        /// <returns>A tuple containing the key and the encryptor</returns>
+        internal static (AesGcm aesGcm, byte[] key) GetAesGcmEncryptor(int keySize)
+        {
+            // Declare an AesGCM encryptor
+            AesGcm alg;
+
+            // Create return object
+            (AesGcm, byte[]) obj;
+
+            // Create key placeholder of 256 bits
+            byte[] UnencryptedKey = new byte[keySize];
+            // Create a random number generator
+            using (var RNG = RandomNumberGenerator.Create())
+            {
+                // Fill byte array with random bytes
+                RNG.GetBytes(UnencryptedKey);
+            }
+
+            // Create AES encryptor and set the key size
+            obj.Item1 = new AesGcm(UnencryptedKey);
+            // Save key in tuple
+            obj.Item2 = UnencryptedKey;
+
+            // Return the encryptor
+            return obj;
+        }
+
+        /// <summary>
         /// Character mappings for Base64Url strings
         /// </summary>
         internal static Dictionary<char, char> UrlCharMappings = new Dictionary<char, char>()

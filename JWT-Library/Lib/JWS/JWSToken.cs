@@ -1,4 +1,7 @@
-﻿namespace JWTLib
+﻿/// <summary>
+/// Root namespace
+/// </summary>
+namespace JWTLib
 {
     // Requiren namespaces
     using Newtonsoft.Json;
@@ -37,15 +40,10 @@
         public string JWT { get => $"{Header}.{Payload}.{Signature}"; }
 
         /// <summary>
-        /// Returns the JWT in a Json representation
+        /// Returns the JWT in a Json representation<br/>
+        /// This will retutn null if JWT could not be serialized
         /// </summary>
         [JsonIgnore]
-        public string GetJsonRepresentation { get => JsonConvert.SerializeObject(this); }
-
-        /// <summary>
-        /// Result when building the token
-        /// </summary>
-        [JsonIgnore]
-        public Results Result { get; set; }
+        public string Json { get { try { return JsonConvert.SerializeObject(this); } catch { return null; } } }
     }
 }

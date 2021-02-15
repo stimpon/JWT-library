@@ -1,5 +1,5 @@
 ﻿/// <summary>
-/// Root linrary namespace
+/// Root library namespace
 /// </summary>
 namespace JWTLib
 {
@@ -30,29 +30,27 @@ namespace JWTLib
         /// <summary>
         /// Gets or sets the unencrypted key.
         /// </summary>
-        byte[] UnencryptedKey { get; set; }
+        //byte[] UnencryptedKey { get; set; }
 
         /// <summary>
         /// Gets or sets the payload of the JWE.
         /// </summary>
         private string Payload { get; set; }
 
+        /// <summary>
+        /// RSA private key needs to be created or set if using any of the RSA algorithms
+        /// </summary>
+        public RSAParameters RSAPrivateKey { get; set; }
 
         /// <summary>
-        /// Gets or sets the RSA provider.
+        /// Gets or sets the encryption mode
         /// </summary>
-        RSACryptoServiceProvider provider { get; set; }
+        private JWEAlgorithms AlgMode { get; set; }
+
         /// <summary>
-        /// Gets or sets a value indicating whether [use RSA oaep].
+        /// Gets or sets the encryption mode.
         /// </summary>
-        /// <value>
-        ///   <c>true</c> if [use RSA oaep]; otherwise, <c>false</c>.
-        /// </value>
-        private bool RSA_OAEP_MODE { get; set; }
-        /// <summary>
-        /// Gets or sets the type.
-        /// </summary>
-        private JWERSAAlgorithmTypes Type { get; set; }
+        private JWEEncryptionModes EncMode { get; set; }
 
         #endregion
 
@@ -61,48 +59,13 @@ namespace JWTLib
         /// <summary>
         /// Initializes a new instance of the <see cref="JWETokenBuilder"/> class.
         /// </summary>
-        public JWETokenBuilder()
-        {         
-            // Set standard values that must be set by the programmer 
-            this.RSA_OAEP_MODE = false;
-        }
-
-        #endregion
-
-        #region Private functions
-
-        /// <summary>
-        /// Creates and returns a new encryptor based on the algorithm type
-        /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns></returns>
-        private AesGcm GetAesGCMEncryptor(JWERSAAlgorithmTypes type)
+        public JWETokenBuilder(JWEAlgorithms mode)
         {
-            // Declare an AesGCM encryptor
-            AesGcm alg;
-
-            // Check what keysize that should be used
-            switch (type)
-            {
-                case JWERSAAlgorithmTypes.RSA_OAEP: // AesGCM with a key size of 256 bits should be used in this case
-                    // Create key placeholder of 256 bits
-                    this.UnencryptedKey = new byte[32];
-                    // Create a random number generator
-                    using (var RNG = RandomNumberGenerator.Create())
-                    {
-                        // Fill byte array with random bytes
-                        RNG.GetBytes(this.UnencryptedKey);
-                    }
-                    break;
-
-                default: return null; // If invalid option was passed
-            }
-
-            // Create AES encryptor and set the key size
-            alg = new AesGcm(this.UnencryptedKey);
-
-            // Return the encryptor
-            return alg;
+            // Set the mode
+            this.AlgMode = mode;
+            
+            // Get the encryption mode
+            this.EncMode = (JWEEncryptionModes)int.Parse(EnumHelpers.ExtractDescriptor(mode));
         }
 
         #endregion
@@ -113,12 +76,8 @@ namespace JWTLib
         /// Set the payload, this could be another signed JWT or an object containing claims. This will be the ciphertext in the JWT
         /// </summary>
         /// <param name="payload">The payload.</param>
-        /// <param name="serialize">If the payload is an object the set serialize to <c>true<c> </param>
-        /// <returns>
-        ///     True:  Payload was set
-        ///     False: Payload could not be set
-        /// </returns>
-        public bool SetPayload(object payload, bool serialize = false)
+        /// <param name="serialize">If payload should be serialized, set <c>true<c>, else leave at <c>false<c> </param>
+        public void SetPayload(object payload, bool serialize = false)
         {
             // If object should be serialized...
             if (serialize)
@@ -129,50 +88,37 @@ namespace JWTLib
                 this.Payload = obj;
             }
             // Else just set the payload as is...
-            else
-            {
-                this.Payload = payload.ToString();
-            }
-
-            // Payload was set successfuly
-            return true;
+            else this.Payload = payload.ToString();
         }
 
         /// <summary>
-        /// This function will turn on RSA-OAEP mode
+        /// Sets the RSA private key, the secret key will be stored in <see cref="RSAPrivateKey"/>
         /// </summary>
         /// <param name="type">The type.</param>
         /// <param name="param">The RSA private key</param>
         /// <returns></returns>
-        public bool UseRSA_OAEP(JWERSAAlgorithmTypes type, RSAParameters param)
+        public void SetRSAPrivateKey(RSAParameters privateKey)
         {
-            // Get field
-            var field = type.GetType().GetField(type.ToString());
-            // Get attributes from field
-            var attr = field.GetCustomAttributes(typeof(DescriptionAttribute), true);
-
             // Create the JWE header
             this.ProtectedHeader = new JWERSAHeader()
             {
                 typ = "JWT",
-                alg = type.ToString().Replace('_', '-'),
-                enc = ((DescriptionAttribute)attr[0]).Description
+                alg = this.AlgMode.ToString().Replace('_', '-'),
+                enc = this.EncMode.ToString()
             };
 
             // Create the RSA crypto provider
-            this.provider = new RSACryptoServiceProvider();
-            // Import the parameters
-            provider.ImportParameters(param);
+            this.RSAPrivateKey = privateKey;
+        }
 
-            // If only a public key was provided...
-            if (provider.PublicOnly) return false; // return false
-
-            // Save alg info
-            this.RSA_OAEP_MODE = true;
-            this.Type = type;
-
-            // Success
-            return true;
+        /// <summary>
+        /// Calling this function with a new encryption mode will override the default encryption mode<br/>
+        /// used by the algorithm
+        /// </summary>
+        /// <param name="mode">The mode.</param>
+        public void SetEncryptionMode(JWEEncryptionModes mode)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -182,20 +128,23 @@ namespace JWTLib
         ///     True:  Build was successful
         ///     False: Build was not successful
         /// </returns>
-        public JWECreationResult Build()
+        public JWEToken BuildToken()
         {
             // If the payload is empty...
-            if (String.IsNullOrEmpty(this.Payload)) return new JWECreationResult() { Result = Results.EmptyPayload }; // Return error
+            if (String.IsNullOrEmpty(this.Payload)) throw new Exception("No payload has been set");
 
             // Check what algorithm to use...
-            if (RSA_OAEP_MODE)
+            if (this.AlgMode == 0)
             {
                 /// <summary>
                 /// RSA with OAEP should be used
                 /// </summary>
 
+                // Get a new encryptor and random key
+                var encryptorTuple = Data.GetAesGcmEncryptor(int.Parse(EnumHelpers.ExtractDescriptor(this.EncMode)));
+
                 // Create an encryptor
-                using(var encryptor = GetAesGCMEncryptor(this.Type))
+                using (var encryptor = encryptorTuple.aesGcm)
                 {
                     // Try to build the compact JWT JWE
                     try
@@ -225,27 +174,35 @@ namespace JWTLib
                         // Encrypt the payload and get the authentication tag
                         encryptor.Encrypt(nonceSpan, payloadSpan, cipherTextSpan, tagSpan, protectedSpan);
 
-                        // Create JWE Result
-                        JWECreationResult JWE = new JWECreationResult
+                        // Create a new token and assign it null
+                        JWEToken token = null;
+
+                        // Create a new provider
+                        using (var provider = new RSACryptoServiceProvider())
                         {
-                            ProtectedHeader = JsonConvert.SerializeObject(ProtectedHeader).ToBase64Url(),
-                            EncryptedKey    = provider.Encrypt(UnencryptedKey, true).ToBase64Url(),
-                            IV              = nonceSpan.ToBase64Url(),
-                            Ciphertext      = cipherText.ToBase64Url(),
-                            Tag             = tag.ToBase64Url(),
-                            Result          = Results.OK
-                        };
+                            // Import private key
+                            provider.ImportParameters(this.RSAPrivateKey);
+
+                            // Create JWE Result
+                            token = new JWEToken
+                            {
+                                ProtectedHeader = JsonConvert.SerializeObject(ProtectedHeader).ToBase64Url(),
+                                EncryptedKey    = provider.Encrypt(encryptorTuple.key, true).ToBase64Url(),
+                                IV              = nonceSpan.ToBase64Url(),
+                                Ciphertext      = cipherText.ToBase64Url(),
+                                Tag             = tag.ToBase64Url(),
+                            };
+                        }
 
                         // Return the JWE
-                        return JWE;
+                        return token;
                     }
                     // If build failed...
-                    catch { return new JWECreationResult() { Result = Results.Failed }; } // Return error
+                    catch(Exception ex) { throw new Exception(ex.Message); } // Return error
                 }
             }
 
-            // Return failed result
-            return new JWECreationResult() { Result = Results.Failed };
+            throw new Exception();
         }
 
         #endregion

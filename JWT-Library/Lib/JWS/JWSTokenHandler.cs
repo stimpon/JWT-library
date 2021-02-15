@@ -120,6 +120,33 @@ namespace JWTLib
             }
         }
 
+        /// <summary>
+        /// Convert a string JWT into a <see cref="JWSToken"/>
+        /// </summary>
+        /// <param name="JWT">The string JWT</param>
+        /// <returns>
+        ///     New <see cref="JWSToken"/> if convertsion was successful<br/>
+        ///     nulll if convertsion failed
+        /// </returns>
+        public static JWSToken ToToken(string JWT)
+        {
+            // Create the token and assign it to null
+            JWSToken token = null;
+
+            // JWT must contain 3 parts seperated by a dot
+            if(JWT.Split('.').Length == 3)
+                // Create the token
+                token = new JWSToken()
+                {
+                    Header    = JWT.Split('.')[0], // Pull the header from the JWT
+                    Payload   = JWT.Split('.')[1], // Pull the payload from the payload from the JWT
+                    Signature = JWT.Split('.')[2]  // Pull the signature from the JWT
+                };
+
+            // Return the token
+            return token;
+        }
+
         #endregion
 
         #region Private functions
@@ -143,7 +170,7 @@ namespace JWTLib
                         Encoding.Default.GetString(token.Payload.FromBase64Url())).exp;
 
                     // If expired...
-                    if (NumericDate.Today() > Convert.ToDouble(exp)) return true; // Return true result
+                    if (NumericDate.Today() > Convert.ToInt64(exp)) return true; // Return true result
                 }
 
                 // Token has no expiration claim or is not expired

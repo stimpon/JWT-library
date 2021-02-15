@@ -19,11 +19,11 @@ namespace JWTLib
         /// <summary>
         /// (expiration time): Time after which the JWT expires (default time 24hrs from now) in numeric date
         /// </summary>
-        public virtual double exp { get => NumericDate.Convert(DateTime.Now.AddHours(24)); }
+        public virtual long exp { get => NumericDate.Convert(DateTime.Now.AddHours(24)); }
 
         /// <summary>
         /// (issued at time): Time at which the JWT was issued; can be used to determine age of the JWT, in numeric date
         /// </summary>
-        public virtual double iat { get => NumericDate.Today(); }
+        public virtual long iat { get => NumericDate.Today(); }
     }
 }

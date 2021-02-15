@@ -44,7 +44,6 @@ namespace JWTLib
 
         /// <summary>
         /// RSA private key needs to be created or set if using any of the RSA algorithms
-        /// 
         /// </summary>
         public RSAParameters RSAPrivateKey { get; set; }
 
@@ -139,22 +138,19 @@ namespace JWTLib
         public JWSToken BuildToken()
         {
             // If no payload has been set...
-            if (this.Payload == null) 
-                // Return missing payload error
-                return new JWSToken() { Result = Results.EmptyPayload };
+            if (this.Payload == null)
+                throw new Exception("No payload has been set");
 
             // Create the unsigned JWT
             var serializedHeader  = JsonConvert.SerializeObject( this.Header  ).ToBase64Url();
             var serializedPayload = JsonConvert.SerializeObject( this.Payload ).ToBase64Url();
-
 
             // Check mode
             if ((int)this.Mode >= (int)JWSAlgorithms.RS256 && (int)this.Mode <= (int)JWSAlgorithms.RS512) // RSA Mode
             {
                 // If no private key has been set...
                 if (this.RSAPrivateKey.Equals(default(RSAParameters)))
-                    // Return missing private key error
-                    return new JWSToken() { Result = Results.MissingPrivateKey };
+                    throw new Exception("RSA private key is missing");
 
 
                 // Declare the signature variable
@@ -166,7 +162,7 @@ namespace JWTLib
                     // Import the given RSA parameters
                     provider.ImportParameters(this.RSAPrivateKey);
                     // If only private key is present
-                    if (provider.PublicOnly) return new JWSToken() { Result = Results.MissingPrivateKey }; // Return error result 
+                    if (provider.PublicOnly) throw new Exception("RSA parameters is missing the private key");
 
                     // Create the signature and hash
                     signature = provider.SignData(
@@ -182,7 +178,6 @@ namespace JWTLib
                     Header = serializedHeader,
                     Payload = serializedPayload,
                     Signature = signature,
-                    Result = Results.OK
                 };
             }
             // Else...
@@ -193,8 +188,7 @@ namespace JWTLib
                 {
                     // If a secret has been set
                     if (this.HMACSecret == null)
-                        // Return missing secret key error
-                        return new JWSToken() { Result = Results.MissingHMACSecretKey };
+                        throw new Exception("Secret key is missing");
 
                     // Set the secret key
                     (this.Hasher as HMAC).Key = this.HMACSecret;
@@ -208,11 +202,10 @@ namespace JWTLib
                         Header = serializedHeader,
                         Payload = serializedPayload,
                         Signature = signature,
-                        Result = Results.OK
                     };
                 }
                 // Return error result
-                catch { return new JWSToken() { Result = Results.Failed }; }
+                catch(Exception ex) { throw new Exception(ex.Message); }
             }
 
         }

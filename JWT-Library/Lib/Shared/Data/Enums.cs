@@ -1,8 +1,10 @@
-﻿namespace JWTLib
+﻿/// <summary>
+/// Root namespace
+/// </summary>
+namespace JWTLib
 {
     // Required namespaces
     using System.ComponentModel;
-    using System.Security.Cryptography;
 
     /// <summary>
     /// Header Parameter Values for JWS
@@ -50,50 +52,31 @@
     /// <summary>
     /// Contains 
     /// </summary>
-    public enum JWERSAAlgorithmTypes
+    public enum JWEAlgorithms
     {
         /// <summary>
         /// The RSA oaep
         /// </summary>
-        [Description("A256GCM")] // Describes what encryption algorithm to use with this type
+        [Description("0")] // Describes the default encryption type to use with this alhorithm
         RSA_OAEP = 0,
     }
 
     /// <summary>
-    /// Contains results for JWT verifications
+    /// Contains 
     /// </summary>
-    public enum Results
+    public enum JWEEncryptionModes
     {
         /// <summary>
-        /// Gets returned if JWT could be verified
+        /// Advanced Encryption Standard (AES) using 128 bit keys in Galois/Counter Mode
         /// </summary>
-        OK,
-        /// <summary>
-        /// Gets returned if the JWT could not be verified
-        /// </summary>
-        Failed,
-        /// <summary>
-        /// Gets returned if the JWT is invalid
-        /// </summary>
-        InvalidJWT,
-        /// <summary>
-        /// Gets returned if the payload is empty or null
-        /// </summary>
-        EmptyPayload,
+        [Description("16")]
+        A128GCM = 0,
 
         /// <summary>
-        /// Gets returned if verification failed due to missing private key
+        /// Advanced Encryption Standard (AES) using 256 bit keys in Galois/Counter Mode
         /// </summary>
-        MissingPrivateKey,
-        /// <summary>
-        /// Gets returned if HMAC secret key is missing
-        /// </summary>
-        MissingHMACSecretKey,
-
-        /// <summary>
-        /// Gets returned if a mode that is not supported yet is used
-        /// </summary>
-        ModeNotSupported
+        [Description("32")]
+        A256GCM = 1
     }
 
     /// <summary>
@@ -119,4 +102,5 @@
         /// </summary>
         Error
     }
+
 }
