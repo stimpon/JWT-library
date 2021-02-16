@@ -102,7 +102,7 @@ namespace JWTLib
                 return result;
             }
             // Error occurred while resolving payload
-            catch(Exception ex)
+            catch
             {
                 // Could not resolve payload
                 return null;

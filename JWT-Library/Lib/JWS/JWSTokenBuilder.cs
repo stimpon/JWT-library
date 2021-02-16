@@ -34,7 +34,7 @@ namespace JWTLib
         /// <summary>
         /// This is the hasher that will be used when building JWTs with this builder
         /// </summary>
-        public HashAlgorithm Hasher { get; private set; }
+        public object Hasher { get; private set; }
 
         /// <summary>
         /// This key needs to be created or set if using any of the HMAC algorithms.
@@ -60,7 +60,7 @@ namespace JWTLib
             // Set the mode
             this.Mode = mode;
 
-            // Get the appropriate hasher
+            // Get the correct hasher
             this.Hasher = Data.Hashers[(int)mode];
 
             // Create header for JWS
@@ -164,12 +164,16 @@ namespace JWTLib
                     // If only private key is present
                     if (provider.PublicOnly) throw new Exception("RSA parameters is missing the private key");
 
+                    var encodedPayload = Encoding.Default.GetBytes($"{serializedHeader}.{serializedPayload}");
+
                     // Create the signature and hash
                     signature = provider.SignData(
                         // From the Header + Payload
-                        Encoding.Default.GetBytes($"{serializedHeader}.{serializedPayload}"),
-                        // With the set hasher
-                        this.Hasher).ToBase64Url();
+                        encodedPayload,
+                        // Cast the hasher into the correct enum
+                        (HashAlgorithmName)this.Hasher, 
+                        // Use PKCS1 v 1.5
+                        RSASignaturePadding.Pkcs1).ToBase64Url();
                 }
 
                 // Returned the creation result

@@ -15,21 +15,21 @@ namespace JWTLib
         /// <summary>
         /// Array that contains available hashers
         /// </summary>
-        internal static HashAlgorithm[] Hashers =
+        internal static object[] Hashers =
         {
             #region SHA hashers
-            // SHA hashers are here
-            SHA256.Create(), // SHA256 hasher [0]
-            SHA384.Create(), // SHA386 hasher [1]
-            SHA512.Create(), // SHA512 hasher [2]
+            
+            HashAlgorithmName.SHA256,
+            HashAlgorithmName.SHA384,
+            HashAlgorithmName.SHA512,
 
             #endregion
-        
+
             #region HMAC hashers
             // HMAC hashers are here
             new HMACSHA256(), // HMACSHA256 [3]
             new HMACSHA384(), // HMACSHA256 [4]
-            new HMACSHA512() // HMACSHA256 [5]
+            new HMACSHA512()  // HMACSHA256 [5]
 
             #endregion
         };

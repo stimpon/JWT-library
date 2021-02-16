@@ -78,11 +78,19 @@ namespace JWTLib
                         // Load the RSA parameters
                         provider.ImportParameters((RSAParameters)key);
 
+                        // Encode the payload
+                        var encodedPayload = Encoding.Default.GetBytes($"{token.Header}.{token.Payload}");
+
                         // Verify the JWT
                         bool result = provider.VerifyData(
-                            Encoding.Default.GetBytes($"{token.Header}.{token.Payload}"),
-                            Data.Hashers[(int)algType],
-                            token.Signature.FromBase64Url());
+                            // Load the encoded payload
+                            encodedPayload, 0, encodedPayload.Length,
+                            // Load the signature
+                            token.Signature.FromBase64Url(),
+                            // Get the correct hasher
+                            (HashAlgorithmName)Data.Hashers[(int)algType],
+                            // Define padding
+                            RSASignaturePadding.Pkcs1);
 
                         // If JWT could be verified...
                         if (result) return VerifyResults.Valid; // Return OK result
@@ -99,7 +107,7 @@ namespace JWTLib
                 if (IsExpired(token)) return VerifyResults.Expired;
 
                 // Create hasher
-                using (var hmac = Data.Hashers[(int)algType])
+                using (var hmac = (HMAC)Data.Hashers[(int)algType])
                 {
                     // Set the provided key
                     (hmac as HMAC).Key = (byte[])key;

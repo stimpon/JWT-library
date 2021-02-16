@@ -16,15 +16,18 @@ namespace JWTLib
         /// <summary>
         /// RSASSA-PKCS1-v1_5 using SHA256 (RECOMENDED)
         /// </summary>
-        RS256 = 0,
+        [Description("SHA256")] // Describes the hasher to use
+        RS256 = 0, // This alg will it's own hasher from Data
         /// <summary>
         /// RSASSA-PKCS1-v1_5 using SHA384
         /// </summary>
-        RS384 = 1,
+        [Description("SHA384")] // Describes the hasher to use
+        RS384 = 1, // This alg will it's own hasher from Data
         /// <summary>
         /// RSASSA-PKCS1-v1_5 using SHA512
         /// </summary>
-        RS512 = 2,
+        [Description("SHA512")] // Describes the hasher to use
+        RS512 = 2, // This alg will it's own hasher from Data
 
         #endregion
 
@@ -33,18 +36,18 @@ namespace JWTLib
         /// <summary>
         /// HMAC using SHA-256
         /// </summary>
-        [Description("HMACSHA256")]
-        HS256 = 3,
+        [Description("HMACSHA256")] // Describes the algorithms full name
+        HS256 = 3, // This alg will it's own hasher from Data
         /// <summary>
         /// HMAC using SHA-384
         /// </summary>
-        [Description("HMACSHA384")]
-        HS384 = 4,
+        [Description("HMACSHA384")] // Describes the algorithms full name
+        HS384 = 4, // This alg will it's own hasher from Data
         /// <summary>
         /// HMAC using SHA-512
         /// </summary>
-        [Description("HMACSHA512")]
-        HS512 = 5,
+        [Description("HMACSHA512")] // Describes the algorithms full name
+        HS512 = 5, // This alg will it's own hasher from Data
 
         #endregion
     }
