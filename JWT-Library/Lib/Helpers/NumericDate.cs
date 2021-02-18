@@ -15,7 +15,7 @@ namespace JWTLib
         /// Gets todays date in numeric value (seconds since epoch)
         /// </summary>
         /// <returns></returns>
-        public static long Today()
+        public static long Now()
         {
             // Calculate and return the number of seconds from epoch 
             return (long)Math.Floor((DateTime.Now - DateTimeOffset.UnixEpoch).TotalSeconds);

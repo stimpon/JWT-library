@@ -4,10 +4,10 @@
 namespace JWTLib
 {
     // Required namespaces
-    using System.Text;
-    using System.Security.Cryptography;
-    using Newtonsoft.Json;
     using System;
+    using System.Text;
+    using System.Text.Json;
+    using System.Security.Cryptography;
 
     /// <summary>
     /// Construct and build JWT tokens using JWS
@@ -121,7 +121,7 @@ namespace JWTLib
         /// Creates the payload from the passed object, this will overwrite the existing payload.
         /// The payload will be in Json. <br/>
         /// Your payload object can implement sone of the payload implementations for further functionaliyu <br/>
-        /// <see cref="StandardPayload"/>: Will add expiration to the JWT
+        /// <see cref="IDefaultClaims"/>: Will add expiration to the JWT
         /// </summary>
         /// <param name="payload">The payload.</param>
         public void SetPayload(object payload)
@@ -142,8 +142,8 @@ namespace JWTLib
                 throw new Exception("No payload has been set");
 
             // Create the unsigned JWT
-            var serializedHeader  = JsonConvert.SerializeObject( this.Header  ).ToBase64Url();
-            var serializedPayload = JsonConvert.SerializeObject( this.Payload ).ToBase64Url();
+            var serializedHeader  = JsonSerializer.Serialize( this.Header  ).ToBase64Url();
+            var serializedPayload = JsonSerializer.Serialize( this.Payload ).ToBase64Url();
 
             // Check mode
             if ((int)this.Mode >= (int)JWSAlgorithms.RS256 && (int)this.Mode <= (int)JWSAlgorithms.RS512) // RSA Mode

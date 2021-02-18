@@ -99,6 +99,10 @@ namespace JWTLib
         /// JWT has expired
         /// </summary>
         Expired,
+        /// <summary>
+        /// The JWT is not valid yet
+        /// </summary>
+        NotValidYet,
 
         /// <summary>
         /// Error occurred while verifying JWT

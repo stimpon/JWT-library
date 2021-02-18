@@ -6,7 +6,7 @@ namespace JWTLib
     // Required namespaces
     using System;
     using System.Text;
-    using Newtonsoft.Json;
+    using System.Text.Json;
     using System.Security.Cryptography;
 
     /// <summary>
@@ -34,43 +34,52 @@ namespace JWTLib
                 var obj = Encoding.Default.GetString(token.Payload.FromBase64Url());
 
                 // Resolve and return the token payload
-                return JsonConvert.DeserializeObject<T>(obj);
+                return JsonSerializer.Deserialize<T>(obj);
             }
             // If payload could not be verified...
             catch { return null; } // return null object
         }
 
         /// <summary>
-        /// Verifies the specified JWT.
+        /// Verifies the specified JWT. <br/>
+        /// This function will also search for the existence of default claims
         /// </summary>
-        /// <param name="JWT">The JWT.</param>
-        /// <param name="param">
+        /// <param name="token">The token to verify.</param>
+        /// <param name="key">
         ///     If RSA was used for signing- set key to the RSA public key<br/>
         ///     If HMAC was used for signing- set key to the secret key <see cref="byte[]"/>
         /// </param>
+        /// <param name="optUniqueIdentifier">Verification will fail if the jti in the token is equal to this identifier</param>
         /// <returns>
         ///     <see cref="Results.OK"/>: If JWT could be verified<br/>
         ///     <see cref="Results.Failed"/>: If JWT could not be verified<br/>
-        ///     <see cref="Results.Expired"/>: If JWT has expired
+        ///     <see cref="Results.Expired"/>: If JWT has the 'exp' claim and the token has expired<br/>
+        ///     <see cref="Results.NotValidYet"/>: If the JWT has the 'nbf' claim and the token is not yet valid
         /// </returns>
-        public static VerifyResults Verify(JWSToken token, object key)
+        public static VerifyResults Verify(JWSToken token, object key, string 
+            // Optional parameters
+            optUniqueIdentifier = null)
         {
             // If not all parts exist
             if (token == null || token.JWT.Split('.').Length != 3) return VerifyResults.Invalid; // The JWT is invalid
 
             // Get the algorithm type from the header
             var algType = (JWSAlgorithms)Enum.Parse(typeof(JWSAlgorithms),
-                                                JsonConvert.DeserializeObject<JWSHeader>(
+                                                JsonSerializer.Deserialize<JWSHeader>(
                                                 Encoding.Default.GetString(token.Header.FromBase64Url())).alg);
 
             // Check algorithm...
             if ((int)algType >= (int)JWSAlgorithms.RS256 && (int)algType <= (int)JWSAlgorithms.RS512) // RSA Mode
             {
-                // If the token is expired
+                // If the token is expired...
                 if (IsExpired(token)) return VerifyResults.Expired;
+                // If the token is not yet valid...
+                if (IsNotValidYet(token)) return VerifyResults.NotValidYet;
+                // If the token has a uniqye identifier...
+                if (!String.IsNullOrEmpty(optUniqueIdentifier)) throw new NotImplementedException("functionality not implemented");
 
                 // Try verifying the JWT...
-                    try
+                try
                 {
                     // Create the RSA crypto service provider
                     using (var provider = new RSACryptoServiceProvider())
@@ -160,6 +169,19 @@ namespace JWTLib
         #region Private functions
 
         /// <summary>
+        /// Converts the base64 payload into a dynamic object (Used for cheking the existence of claims)
+        /// </summary>
+        /// <param name="token">The token.</param>
+        /// <returns>The dynamix payload</returns>
+        private static dynamic GetDynamicPayload(JWSToken token)
+        {
+            // Convert and return the payload as a dynamic
+            return JsonSerializer.Deserialize<dynamic>(Encoding.Default.GetString(token.Payload.FromBase64Url()));
+        }
+
+        // Private claim checking functions >>
+        #region Claim checking
+        /// <summary>
         /// Determines whether this token is expired.
         /// </summary>
         /// <returns>
@@ -170,23 +192,72 @@ namespace JWTLib
             // This can fail if the exp claim has been modified
             try
             {
-                // If the token has a expiration date claim...
-                if (JsonConvert.DeserializeObject<dynamic>(Encoding.Default.GetString(token.Payload.FromBase64Url())).exp != null)
-                {
-                    // Get expiration date from JWT
-                    var exp = JsonConvert.DeserializeObject<dynamic>(
-                        Encoding.Default.GetString(token.Payload.FromBase64Url())).exp;
-
+                // Get the dynamic payload
+                var payload = GetDynamicPayload(token);
+                // If the token has a exp claim...
+                if (payload.exp > 0)
                     // If expired...
-                    if (NumericDate.Today() > Convert.ToInt64(exp)) return true; // Return true result
-                }
+                    if (NumericDate.Now() > Convert.ToInt64(payload.exp)) return true; // JWT is expired
 
                 // Token has no expiration claim or is not expired
                 return false;
             }
-            // Return true result because the claim is unreadable
-            catch { return true; }
+            // Claim is unreadable so skip it, verification will fail if this has been altered...
+            catch { return false; }
         }
+
+        /// <summary>
+        /// Compares the current time agains the 
+        /// </summary>
+        /// <param name="token">The token.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified token is valid; otherwise, <c>false</c>.
+        /// </returns>
+        private static bool IsNotValidYet(JWSToken token)
+        {
+            // This can fail if the exp claim has been modified
+            try
+            {
+                // Get the dynamic payload
+                var payload = GetDynamicPayload(token);
+                // If the token has a nbf claim...
+                if (payload.nbf > 0)
+                    // If expired...
+                    if (Convert.ToInt64(payload.nbf) > NumericDate.Now()) return true; // JWT is not valid yet 
+
+                // Token has no expiration claim or is not expired
+                return false;
+            }
+            // Claim is unreadable so skip it, verification will fail if this has been altered...
+            catch { return false; }
+        }
+
+        /// <summary>
+        /// Compares the jti in the token to the provided jti
+        /// </summary>
+        /// <param name="token">The token.</param>
+        /// <returns>
+        ///   <c>true</c> if equal; otherwise, <c>false</c>.
+        /// </returns>
+        private static bool IsJTIEqual(JWSToken token, string jti)
+        {
+            // This can fail if the exp claim has been modified
+            try
+            {
+                // Get the dynamic payload
+                var payload = GetDynamicPayload(token);
+                // If the token has a nbf claim...
+                if (payload.jti > 0)
+                    // If expired...
+                    if (jti.CompareTo(payload.jti)) return true; // jti match
+
+                // Token has no expiration claim or is not expired
+                return false;
+            }
+            // Claim is unreadable so skip it, verification will fail if this has been altered...
+            catch { return false; }
+        }
+        #endregion
 
         #endregion
     }

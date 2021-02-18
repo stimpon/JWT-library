@@ -4,7 +4,8 @@
 namespace JWTLib
 {
     // Required namespaces
-    using Newtonsoft.Json;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// This gets returned when a JWT is created with JWE
@@ -14,27 +15,27 @@ namespace JWTLib
         /// <summary>
         /// Gets or sets the protected header.
         /// </summary>
-        [JsonProperty("protected")]
+        [JsonPropertyName("protected")]
         public string ProtectedHeader { get; set; }
         /// <summary>
         /// Gets or sets the encrypted key.
         /// </summary>
-        [JsonProperty("encrypted_key")]
+        [JsonPropertyName("encrypted_key")]
         public string EncryptedKey { get; set; }
         /// <summary>
         /// Gets or sets the iv.
         /// </summary>
-        [JsonProperty("iv")]
+        [JsonPropertyName("iv")]
         public string IV { get; set; }
         /// <summary>
         /// Gets or sets the ciphertext.
         /// </summary>
-        [JsonProperty("ciphertext")]
+        [JsonPropertyName("ciphertext")]
         public string Ciphertext { get; set; }
         /// <summary>
         /// Gets or sets the tag.
         /// </summary>
-        [JsonProperty("tag")]
+        [JsonPropertyName("tag")]
         public string Tag { get; set; }
 
         /// <summary>
@@ -48,6 +49,6 @@ namespace JWTLib
         /// </summary>
         /// <returns></returns>
         [JsonIgnore]
-        public string Json { get { try { return JsonConvert.SerializeObject(this); } catch { return null; } }}
+        public string Json { get { try { return JsonSerializer.Serialize(this); } catch { return null; } }}
     }
 }

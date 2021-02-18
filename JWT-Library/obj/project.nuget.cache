@@ -1,10 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "809dOJhzsVTjg2fa6stGpykW/Tegnd625XfTfLK5w1d08rFN5ygs8oT+D2wNQWdXbHrAPisZLo4c6A+AUb0/3g==",
+  "dgSpecHash": "qH+2r1B9qPgkW2G/DrQ0rB4OCKJNvliGqxpQ8GW3jvmvklKB1u2RCYen+Y9sR2dYZvedPbFlVUVDHwMu9fIKUg==",
   "success": true,
   "projectFilePath": "S:\\Personal Folder\\Visual Studio\\Projects\\JWT-library\\JWT-Library\\JWT-Library.csproj",
-  "expectedPackageFiles": [
-    "C:\\Users\\stimp\\.nuget\\packages\\newtonsoft.json\\12.0.3\\newtonsoft.json.12.0.3.nupkg.sha512"
-  ],
+  "expectedPackageFiles": [],
   "logs": []
 }

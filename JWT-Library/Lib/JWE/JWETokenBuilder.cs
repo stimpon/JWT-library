@@ -4,11 +4,10 @@
 namespace JWTLib
 {
     // Required namespaces
-    using Newtonsoft.Json;
-    using System.Security.Cryptography;
-    using System.ComponentModel;
     using System;
     using System.Text;
+    using System.Text.Json;
+    using System.Security.Cryptography;
 
     /// <summary>
     /// Builder for creating JWE tokens
@@ -83,7 +82,7 @@ namespace JWTLib
             if (serialize)
             {
                 // Serialize the payload
-                var obj = JsonConvert.SerializeObject(payload);
+                var obj = JsonSerializer.Serialize(payload);
                 // Set the payload
                 this.Payload = obj;
             }
@@ -118,7 +117,8 @@ namespace JWTLib
         /// <param name="mode">The mode.</param>
         public void SetEncryptionMode(JWEEncryptionModes mode)
         {
-            throw new NotImplementedException();
+            // Set the new mode
+            this.EncMode = mode;
         }
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace JWTLib
                         // Arrays to put the ciphertext, tag and protected header in
                         byte[] cipherText = new byte[Payload.Length];
                         byte[] tag = new byte[16];
-                        byte[] protected_header = Encoding.Default.GetBytes(JsonConvert.SerializeObject(ProtectedHeader));
+                        byte[] protected_header = Encoding.Default.GetBytes(JsonSerializer.Serialize(ProtectedHeader));
 
                         // Create spans for the encryptor
                         Span<byte> cipherTextSpan = new Span<byte>(cipherText),
@@ -186,7 +186,7 @@ namespace JWTLib
                             // Create JWE Result
                             token = new JWEToken
                             {
-                                ProtectedHeader = JsonConvert.SerializeObject(ProtectedHeader).ToBase64Url(),
+                                ProtectedHeader = JsonSerializer.Serialize(ProtectedHeader).ToBase64Url(),
                                 EncryptedKey    = provider.Encrypt(encryptorTuple.key, true).ToBase64Url(),
                                 IV              = nonceSpan.ToBase64Url(),
                                 Ciphertext      = cipherText.ToBase64Url(),

@@ -1,7 +1,7 @@
 ﻿namespace JWTLib
 {
-    using Newtonsoft;
-    using Newtonsoft.Json;
+    // Required namespaces
+    using System.Text.Json.Serialization;
 
     /// <summary>
     /// Header for a JWT token using JWE with RSA, can be expanded with more attributes
@@ -12,7 +12,7 @@
         /// <summary>
         /// <see cref="IJWEHeader.typ"/>
         /// </summary>
-        [JsonProperty]
+        [JsonPropertyName("typ")]
         public string typ { get; set; }
 
         /// <summary>
@@ -31,13 +31,13 @@
         /// <summary>
         /// Gets the alg string that should be used when serializing <see cref="alg"/>
         /// </summary>
-        [JsonProperty("alg")]
+        [JsonPropertyName("alg")]
         private string _alg => alg.ToString().Replace('_', '-');
 
         /// <summary>
         /// Gets the alg string that should be used when serializing <see cref="enc"/>
         /// </summary>
-        [JsonProperty("enc")]
+        [JsonPropertyName("enc")]
         private string _enc => enc.ToString();
 
         #endregion
