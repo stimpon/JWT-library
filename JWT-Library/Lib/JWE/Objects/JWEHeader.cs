@@ -32,13 +32,13 @@
         /// Gets the alg string that should be used when serializing <see cref="alg"/>
         /// </summary>
         [JsonPropertyName("alg")]
-        private string _alg => alg.ToString().Replace('_', '-');
+        public string _alg { get => alg.ToString().Replace('_', '-'); }
 
         /// <summary>
         /// Gets the alg string that should be used when serializing <see cref="enc"/>
         /// </summary>
         [JsonPropertyName("enc")]
-        private string _enc => enc.ToString();
+        public string _enc { get => enc.ToString(); }
 
         #endregion
     }
