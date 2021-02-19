@@ -14,30 +14,47 @@ namespace JWTLib
     /// </summary>
     public static class JWSTokenHandler
     {
-
         #region Public functions
 
         /// <summary>
-        /// Resolves the payload into the specified object.
+        /// Resolves the base64url payload into the specified object.
         /// </summary>
         /// <param name="token">The JWT token.</param>
         /// <typeparam name="T">Object to resolve the payload into</typeparam>
         /// <returns>
         ///     Complete instance of the resolved object 
         /// </returns>
-        public static T ResolvePayload<T>(JWSToken token) where T: class, new()
+        public static T ResolvePayload<T>(string encodedPayload) where T: class, new()
         {
             // Try to resolve the payload...
             try
             {
                 // Convert payload from base64url and remove newlines
-                var obj = Encoding.Default.GetString(token.Payload.FromBase64Url());
-
+                var obj = Encoding.Default.GetString(encodedPayload.FromBase64Url());
                 // Resolve and return the token payload
                 return JsonSerializer.Deserialize<T>(obj);
             }
-            // If payload could not be verified...
+            // If payload could not be resolved...
             catch { return null; } // return null object
+        }
+
+        /// <summary>
+        /// Resolves base64url header into the spec.
+        /// </summary>
+        /// <param name="encodedHeader">The encoded header.</param>
+        /// <returns></returns>
+        public static H ResolveHeader<H>(string encodedHeader) where H: IJWSHeader
+        {
+            // Try to resolve the header...
+            try
+            {
+                // Convert header from base64url and remove newlines
+                var obj = Encoding.Default.GetString(encodedHeader.FromBase64Url());
+                // Resolve and return the token header
+                return JsonSerializer.Deserialize<H>(obj);
+            }
+            // If header could not be resolved...
+            catch { return default; } // return nothing
         }
 
         /// <summary>
@@ -56,7 +73,7 @@ namespace JWTLib
         ///     <see cref="Results.Expired"/>: If JWT has the 'exp' claim and the token has expired<br/>
         ///     <see cref="Results.NotValidYet"/>: If the JWT has the 'nbf' claim and the token is not yet valid
         /// </returns>
-        public static VerifyResults Verify(JWSToken token, object key, string 
+        public static VerifyResults Verify(IJWSToken token, object key, string 
             // Optional parameters
             optUniqueIdentifier = null)
         {
@@ -64,9 +81,8 @@ namespace JWTLib
             if (token == null || token.JWT.Split('.').Length != 3) return VerifyResults.Invalid; // The JWT is invalid
 
             // Get the algorithm type from the header
-            var algType = (JWSAlgorithms)Enum.Parse(typeof(JWSAlgorithms),
-                                                JsonSerializer.Deserialize<JWSHeader>(
-                                                Encoding.Default.GetString(token.Header.FromBase64Url())).alg);
+            var algType = JsonSerializer.Deserialize<JWSHeader>(
+                          Encoding.Default.GetString(token._header.FromBase64Url())).Algorithm;
 
             // Check algorithm...
             if ((int)algType >= (int)JWSAlgorithms.RS256 && (int)algType <= (int)JWSAlgorithms.RS512) // RSA Mode
@@ -88,14 +104,14 @@ namespace JWTLib
                         provider.ImportParameters((RSAParameters)key);
 
                         // Encode the payload
-                        var encodedPayload = Encoding.Default.GetBytes($"{token.Header}.{token.Payload}");
+                        var encodedPayload = Encoding.Default.GetBytes($"{token._header}.{token._payload}");
 
                         // Verify the JWT
                         bool result = provider.VerifyData(
                             // Load the encoded payload
                             encodedPayload, 0, encodedPayload.Length,
                             // Load the signature
-                            token.Signature.FromBase64Url(),
+                            token._signature.FromBase64Url(),
                             // Get the correct hasher
                             (HashAlgorithmName)Data.Hashers[(int)algType],
                             // Define padding
@@ -119,14 +135,14 @@ namespace JWTLib
                 using (var hmac = (HMAC)Data.Hashers[(int)algType])
                 {
                     // Set the provided key
-                    (hmac as HMAC).Key = (byte[])key;
+                    (hmac as HMAC).Key = HelperFunctions.HashHMACSecret((string)key);
 
                     // Get bytes from header . payload
-                    var compareTo = Encoding.Default.GetBytes($"{token.Header}.{token.Payload}");
+                    var compareTo = Encoding.Default.GetBytes($"{token._header}.{token._payload}");
 
                     // Compute the hash and compare to signature in JWT
                     // If the same signature was generated...
-                    if (token.Signature.CompareTo(hmac.ComputeHash(compareTo).ToBase64Url()) == 0)
+                    if (token._signature.CompareTo(hmac.ComputeHash(compareTo).ToBase64Url()) == 0)
                         // JWT verified
                         return VerifyResults.Valid;
                     // Else...
@@ -145,19 +161,19 @@ namespace JWTLib
         ///     New <see cref="JWSToken"/> if convertsion was successful<br/>
         ///     nulll if convertsion failed
         /// </returns>
-        public static JWSToken ToToken(string JWT)
+        public static Token ToToken<Token>(string JWT) where Token: IJWSToken, new()
         {
             // Create the token and assign it to null
-            JWSToken token = null;
+            Token token = default;
 
             // JWT must contain 3 parts seperated by a dot
             if(JWT.Split('.').Length == 3)
                 // Create the token
-                token = new JWSToken()
+                token = new Token()
                 {
-                    Header    = JWT.Split('.')[0], // Pull the header from the JWT
-                    Payload   = JWT.Split('.')[1], // Pull the payload from the payload from the JWT
-                    Signature = JWT.Split('.')[2]  // Pull the signature from the JWT
+                    _header    = JWT.Split('.')[0], // Pull the header from the JWT
+                    _payload   = JWT.Split('.')[1], // Pull the payload from the payload from the JWT
+                    _signature = JWT.Split('.')[2]  // Pull the signature from the JWT
                 };
 
             // Return the token
@@ -173,10 +189,10 @@ namespace JWTLib
         /// </summary>
         /// <param name="token">The token.</param>
         /// <returns>The dynamix payload</returns>
-        private static dynamic GetDynamicPayload(JWSToken token)
+        private static dynamic GetDynamicPayload(IJWSToken token)
         {
             // Convert and return the payload as a dynamic
-            return JsonSerializer.Deserialize<dynamic>(Encoding.Default.GetString(token.Payload.FromBase64Url()));
+            return JsonSerializer.Deserialize<dynamic>(Encoding.Default.GetString(token._payload.FromBase64Url()));
         }
 
         // Private claim checking functions >>
@@ -187,7 +203,7 @@ namespace JWTLib
         /// <returns>
         ///   <c>true</c> if this token is expired; otherwise, <c>false</c>.
         /// </returns>
-        private static bool IsExpired(JWSToken token)
+        private static bool IsExpired(IJWSToken token)
         {
             // This can fail if the exp claim has been modified
             try
@@ -213,7 +229,7 @@ namespace JWTLib
         /// <returns>
         ///   <c>true</c> if the specified token is valid; otherwise, <c>false</c>.
         /// </returns>
-        private static bool IsNotValidYet(JWSToken token)
+        private static bool IsNotValidYet(IJWSToken token)
         {
             // This can fail if the exp claim has been modified
             try
@@ -239,7 +255,7 @@ namespace JWTLib
         /// <returns>
         ///   <c>true</c> if equal; otherwise, <c>false</c>.
         /// </returns>
-        private static bool IsJTIEqual(JWSToken token, string jti)
+        private static bool IsJTIEqual(IJWSToken token, string jti)
         {
             // This can fail if the exp claim has been modified
             try

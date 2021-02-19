@@ -3,33 +3,32 @@
 /// </summary>
 namespace JWTLib
 {
-    // Required namespaces
+    // Required namespace
     using System;
-    using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Header object, can be expanded with more attributes
+    /// Interface that contains properties that must exist in a JWS header
     /// </summary>
-    public partial class JWSHeader : IJWSHeader
+    public interface IJWSHeader
     {
         /// <summary>
         /// <see cref="IHeader.typ"/>
         /// </summary>
-        [JsonPropertyName("typ")]
         public string typ { get; set; }
 
         /// <summary>
         /// <see cref="IHeader.alg"/>
         /// </summary>
-        [JsonPropertyName("alg")]
         public string alg { get; set; }
 
         /// <summary>
         /// Gets or sets the algorithm.
         /// </summary>
-        [JsonIgnore]
-        public JWSAlgorithms Algorithm { get { 
+        public JWSAlgorithms Algorithm { get {
                 // Return the Algorithm as the correct enum, if invalid, return null
-                try { return (JWSAlgorithms)Enum.Parse(typeof(JWSAlgorithms), this.alg); } catch { return (JWSAlgorithms)(-100); } } }
+                try { return (JWSAlgorithms)Enum.Parse(typeof(JWSAlgorithms), this.alg); } catch { return (JWSAlgorithms)(-100); }
+            }
+        }
+
     }
 }
