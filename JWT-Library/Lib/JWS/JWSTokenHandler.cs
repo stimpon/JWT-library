@@ -77,80 +77,91 @@ namespace JWTLib
             // Optional parameters
             optUniqueIdentifier = null)
         {
-            // If not all parts exist
-            if (token == null || token.JWT.Split('.').Length != 3) return VerifyResults.Invalid; // The JWT is invalid
-
-            // Get the algorithm type from the header
-            var algType = JsonSerializer.Deserialize<JWSHeader>(
-                          Encoding.Default.GetString(token._header.FromBase64Url())).Algorithm;
-
-            // Check algorithm...
-            if ((int)algType >= (int)JWSAlgorithms.RS256 && (int)algType <= (int)JWSAlgorithms.RS512) // RSA Mode
+            try
             {
-                // If the token is expired...
-                if (IsExpired(token)) return VerifyResults.Expired;
-                // If the token is not yet valid...
-                if (IsNotValidYet(token)) return VerifyResults.NotValidYet;
-                // If the token has a uniqye identifier...
-                if (!String.IsNullOrEmpty(optUniqueIdentifier)) IsJTIEqual(token, optUniqueIdentifier);
+                // If not all parts exist
+                if (token == null || token.header == null || token.payload == null || token.signature == null) 
+                    return VerifyResults.Invalid; // The JWT is invalid
 
-                // Try verifying the JWT...
-                try
+                // Get the algorithm type from the header
+                var algType = (JWSAlgorithms)Enum.Parse(typeof(JWSAlgorithms),
+                                             // The Json can be deserialized as a JWSHeader because IJWSHeader contains a deff for alg
+                                             JsonSerializer.Deserialize<JWSHeader>(
+                                             Encoding.Default.GetString(token.header.FromBase64Url())).alg);
+
+                // Check algorithm...
+                if ((int)algType >= (int)JWSAlgorithms.RS256 && (int)algType <= (int)JWSAlgorithms.RS512) // RSA Mode
                 {
-                    // Create the RSA crypto service provider
-                    using (var provider = new RSACryptoServiceProvider())
+                    // If the token is expired...
+                    if (IsExpired(token)) return VerifyResults.Expired;
+                    // If the token is not yet valid...
+                    if (IsNotValidYet(token)) return VerifyResults.NotValidYet;
+                    // If the token has a uniqye identifier...
+                    if (!String.IsNullOrEmpty(optUniqueIdentifier))
+                        // Return if JTI match
+                        if (IsJTIEqual(token, optUniqueIdentifier)) return VerifyResults.JWTAlreadyUsed;
+
+                    // Try verifying the JWT...
+                    try
                     {
-                        // Load the RSA parameters
-                        provider.ImportParameters((RSAParameters)key);
+                        // Create the RSA crypto service provider
+                        using (var provider = new RSACryptoServiceProvider())
+                        {
+                            // Load the RSA parameters
+                            provider.ImportParameters((RSAParameters)key);
 
-                        // Encode the payload
-                        var encodedPayload = Encoding.Default.GetBytes($"{token._header}.{token._payload}");
+                            // Encode the payload
+                            var encodedPayload = Encoding.Default.GetBytes($"{token.header}.{token.payload}");
 
-                        // Verify the JWT
-                        bool result = provider.VerifyData(
-                            // Load the encoded payload
-                            encodedPayload, 0, encodedPayload.Length,
-                            // Load the signature
-                            token._signature.FromBase64Url(),
-                            // Get the correct hasher
-                            (HashAlgorithmName)Data.Hashers[(int)algType],
-                            // Define padding
-                            RSASignaturePadding.Pkcs1);
+                            // Verify the JWT
+                            bool result = provider.VerifyData(
+                                // Load the encoded payload
+                                encodedPayload, 0, encodedPayload.Length,
+                                // Load the signature
+                                token.signature.FromBase64Url(),
+                                // Get the correct hasher
+                                (HashAlgorithmName)Data.Hashers((int)algType),
+                                // Define padding
+                                RSASignaturePadding.Pkcs1);
 
-                        // If JWT could be verified...
-                        if (result) return VerifyResults.Valid; // Return OK result
-                        // If JWT could not be verified...
-                        else return VerifyResults.Invalid; // return Fail result
+                            // If JWT could be verified...
+                            if (result) return VerifyResults.Valid; // Return OK result
+                            // If JWT could not be verified...
+                            else return VerifyResults.Invalid; // return Fail result
+                        }
+                    }
+                    // If errors occurred when verifying JWT...
+                    catch { return VerifyResults.Error; } // JWT is invalid               
+                }
+                else // HMAC Mode
+                {
+                    // If the token is expired
+                    if (IsExpired(token)) return VerifyResults.Expired;
+
+                    // Create hasher
+                    using (var hmac = (HMAC)Data.Hashers((int)algType))
+                    {
+                        // Set the provided key
+                        (hmac as HMAC).Key = HelperFunctions.HashHMACSecret((string)key);
+
+                        // Get bytes from header . payload
+                        var compareTo = Encoding.Default.GetBytes($"{token.header}.{token.payload}");
+
+                        var newSign = hmac.ComputeHash(compareTo).ToBase64Url();
+
+                        // Compute the hash and compare to signature in JWT
+                        // If the same signature was generated...
+                        if (token.signature.CompareTo(newSign) == 0)
+                            // JWT verified
+                            return VerifyResults.Valid;
+                        // Else...
+                        else
+                            // Signature could not be verified
+                            return VerifyResults.Invalid;
                     }
                 }
-                // If errors occurred when verifying JWT...
-                catch { return VerifyResults.Error; } // JWT is invalid               
-            }
-            else // HMAC Mode
-            {
-                // If the token is expired
-                if (IsExpired(token)) return VerifyResults.Expired;
-
-                // Create hasher
-                using (var hmac = (HMAC)Data.Hashers[(int)algType])
-                {
-                    // Set the provided key
-                    (hmac as HMAC).Key = HelperFunctions.HashHMACSecret((string)key);
-
-                    // Get bytes from header . payload
-                    var compareTo = Encoding.Default.GetBytes($"{token._header}.{token._payload}");
-
-                    // Compute the hash and compare to signature in JWT
-                    // If the same signature was generated...
-                    if (token._signature.CompareTo(hmac.ComputeHash(compareTo).ToBase64Url()) == 0)
-                        // JWT verified
-                        return VerifyResults.Valid;
-                    // Else...
-                    else
-                        // Signature could not be verified
-                        return VerifyResults.Invalid;
-                }
-            }
+                // Return error if exception occurred
+            } catch { return VerifyResults.Error; }
         }
 
         /// <summary>
@@ -171,9 +182,9 @@ namespace JWTLib
                 // Create the token
                 token = new Token()
                 {
-                    _header    = JWT.Split('.')[0], // Pull the header from the JWT
-                    _payload   = JWT.Split('.')[1], // Pull the payload from the payload from the JWT
-                    _signature = JWT.Split('.')[2]  // Pull the signature from the JWT
+                    header    = JWT.Split('.')[0], // Pull the header from the JWT
+                    payload   = JWT.Split('.')[1], // Pull the payload from the payload from the JWT
+                    signature = JWT.Split('.')[2]  // Pull the signature from the JWT
                 };
 
             // Return the token
@@ -192,7 +203,7 @@ namespace JWTLib
         private static dynamic GetDynamicPayload(IJWSToken token)
         {
             // Convert and return the payload as a dynamic
-            return JsonSerializer.Deserialize<dynamic>(Encoding.Default.GetString(token._payload.FromBase64Url()));
+            return JsonSerializer.Deserialize<dynamic>(Encoding.Default.GetString(token.payload.FromBase64Url()));
         }
 
         // Private claim checking functions >>

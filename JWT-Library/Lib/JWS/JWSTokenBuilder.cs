@@ -71,7 +71,7 @@ namespace JWTLib
                         // From the Header + Payload
                         encodedPayload,
                         // Cast the hasher into the correct enum
-                        (HashAlgorithmName)Data.Hashers[(int)mode],
+                        (HashAlgorithmName)Data.Hashers((int)mode),
                         // Use PKCS1 v 1.5
                         RSASignaturePadding.Pkcs1).ToBase64Url();
                 }
@@ -79,9 +79,9 @@ namespace JWTLib
                 // Returned the creation result
                 return new Token()
                 {
-                    _header = serializedHeader,
-                    _payload = serializedPayload,
-                    _signature = signature,
+                    header = serializedHeader,
+                    payload = serializedPayload,
+                    signature = signature,
                 };
             }
             // Else...
@@ -90,22 +90,23 @@ namespace JWTLib
                 // Try computing the signature of the JWT
                 try
                 {
-                    // Get hashed hmac secret key
-                    key = HelperFunctions.HashHMACSecret((string)key);
-
-                    // Set the secret key
-                    (Data.Hashers[(int)mode] as HMAC).Key = (byte[])key;
-
-                    // Compute signature hash and convert it to a base64 url
-                    var signature = (Data.Hashers[(int)mode] as HMAC).ComputeHash(Encoding.Default.GetBytes($"{serializedHeader}.{serializedPayload}")).ToBase64Url();
-
-                    // Returned the creation result
-                    return new Token()
+                    using(var hmac = (HMAC)Data.Hashers((int)mode))
                     {
-                        _header = serializedHeader,
-                        _payload = serializedPayload,
-                        _signature = signature,
-                    };
+                        // Set the secret key
+                        hmac.Key = HelperFunctions.HashHMACSecret((string)key);
+
+                        // Compute signature hash and convert it to a base64 url
+                        var signature = hmac.ComputeHash(
+                            Encoding.Default.GetBytes($"{serializedHeader}.{serializedPayload}")).ToBase64Url();
+
+                        // Returned the creation result
+                        return new Token()
+                        {
+                            header = serializedHeader,
+                            payload = serializedPayload,
+                            signature = signature,
+                        };
+                    }
                 }
                 // Return error result
                 catch (Exception ex) { throw new Exception(ex.Message); }

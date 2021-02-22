@@ -25,11 +25,15 @@ namespace JWTLib
         public string alg { get; set; }
 
         /// <summary>
-        /// Gets or sets the algorithm.
+        /// Converts the string algorithm name into a usable enum
         /// </summary>
         [JsonIgnore]
         public JWSAlgorithms Algorithm { get { 
                 // Return the Algorithm as the correct enum, if invalid, return null
-                try { return (JWSAlgorithms)Enum.Parse(typeof(JWSAlgorithms), this.alg); } catch { return (JWSAlgorithms)(-100); } } }
+                try   { return (JWSAlgorithms)Enum.Parse(typeof(JWSAlgorithms), this.alg); } 
+                catch { return (JWSAlgorithms)(-100); } 
+            } 
+        }
+
     }
 }

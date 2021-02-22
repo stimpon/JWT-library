@@ -15,24 +15,25 @@ namespace JWTLib
         /// <summary>
         /// Array that contains available hashers
         /// </summary>
-        internal static object[] Hashers =
+        internal static object Hashers(int id)
         {
-            #region SHA hashers
-            
-            HashAlgorithmName.SHA256,
-            HashAlgorithmName.SHA384,
-            HashAlgorithmName.SHA512,
+            switch (id)
+            {
+                #region SHA hashers
+                case 0: return HashAlgorithmName.SHA256;
+                case 1: return HashAlgorithmName.SHA384;
+                case 2: return HashAlgorithmName.SHA512;
+                #endregion
 
-            #endregion
+                #region HMAC hashers
+                case 3: return new HMACSHA256(); // HMACSHA256 [3]
+                case 4: return new HMACSHA384(); // HMACSHA256 [4]
+                case 5: return new HMACSHA512(); // HMACSHA256 [5]
+                #endregion
 
-            #region HMAC hashers
-            // HMAC hashers are here
-            new HMACSHA256(), // HMACSHA256 [3]
-            new HMACSHA384(), // HMACSHA256 [4]
-            new HMACSHA512()  // HMACSHA256 [5]
-
-            #endregion
-        };
+                default: return null;
+            }
+        }
 
         /// <summary>
         /// Gets the AesGcm encryptor.
@@ -41,9 +42,6 @@ namespace JWTLib
         /// <returns>A tuple containing the key and the encryptor</returns>
         internal static (AesGcm aesGcm, byte[] key) GetAesGcmEncryptor(int keySize)
         {
-            // Declare an AesGCM encryptor
-            AesGcm alg;
-
             // Create return object
             (AesGcm, byte[]) obj;
 

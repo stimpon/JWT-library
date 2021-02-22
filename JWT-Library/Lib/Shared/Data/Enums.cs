@@ -103,6 +103,10 @@ namespace JWTLib
         /// The JWT is not valid yet
         /// </summary>
         NotValidYet,
+        /// <summary>
+        /// The JWT is already used
+        /// </summary>
+        JWTAlreadyUsed,
 
         /// <summary>
         /// Error occurred while verifying JWT

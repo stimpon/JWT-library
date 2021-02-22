@@ -1,8 +1,5 @@
 ﻿namespace JWTLib
 {
-    // Requried namespaces
-    using System.Text.Json.Serialization;
-
     /// <summary>
     /// Standard layout for a JWT token
     /// </summary>
@@ -15,29 +12,18 @@
         /// <summary>
         /// Gets or sets the header.
         /// </summary>
-        public string _header { get; set; }
+        public string header { get; set; }
 
         /// <summary>
         /// Gets or sets the payload.
         /// </summary>
-        public string _payload { get; set; }
+        public string payload { get; set; }
 
         /// <summary>
         /// Gets or sets the signature.
         /// </summary>
-        public string _signature { get; set; }
+        public string signature { get; set; }
 
         #endregion
-
-        #region Getters
-
-        /// <summary>
-        /// Returns the JWT token in it's correct string format
-        /// </summary>
-        [JsonIgnore]
-        public string JWT => $"{_header}.{_payload}.{_signature}";
-
-        #endregion
-
     }
 }
