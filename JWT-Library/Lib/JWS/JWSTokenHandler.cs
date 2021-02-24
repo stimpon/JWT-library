@@ -6,7 +6,7 @@ namespace JWTLib
     // Required namespaces
     using System;
     using System.Text;
-    using System.Text.Json;
+    using Newtonsoft.Json;
     using System.Security.Cryptography;
 
     /// <summary>
@@ -32,7 +32,7 @@ namespace JWTLib
                 // Convert payload from base64url and remove newlines
                 var obj = Encoding.Default.GetString(encodedPayload.FromBase64Url());
                 // Resolve and return the token payload
-                return JsonSerializer.Deserialize<T>(obj);
+                return JsonConvert.DeserializeObject<T>(obj);
             }
             // If payload could not be resolved...
             catch { return null; } // return null object
@@ -51,7 +51,7 @@ namespace JWTLib
                 // Convert header from base64url and remove newlines
                 var obj = Encoding.Default.GetString(encodedHeader.FromBase64Url());
                 // Resolve and return the token header
-                return JsonSerializer.Deserialize<H>(obj);
+                return JsonConvert.DeserializeObject<H>(obj);
             }
             // If header could not be resolved...
             catch { return default; } // return nothing
@@ -80,14 +80,12 @@ namespace JWTLib
             try
             {
                 // If not all parts exist
-                if (token == null || token.header == null || token.payload == null || token.signature == null) 
+                if (token == null || token.RawHeader == null || token.RawPayload == null || token.RawSignature == null) 
                     return VerifyResults.Invalid; // The JWT is invalid
 
                 // Get the algorithm type from the header
-                var algType = (JWSAlgorithms)Enum.Parse(typeof(JWSAlgorithms),
-                                             // The Json can be deserialized as a JWSHeader because IJWSHeader contains a deff for alg
-                                             JsonSerializer.Deserialize<JWSHeader>(
-                                             Encoding.Default.GetString(token.header.FromBase64Url())).alg);
+                var algType = JsonConvert.DeserializeObject<JWSHeader>(
+                                             Encoding.Default.GetString(token.RawHeader.FromBase64Url())).Algorithm;
 
                 // Check algorithm...
                 if ((int)algType >= (int)JWSAlgorithms.RS256 && (int)algType <= (int)JWSAlgorithms.RS512) // RSA Mode
@@ -111,14 +109,14 @@ namespace JWTLib
                             provider.ImportParameters((RSAParameters)key);
 
                             // Encode the payload
-                            var encodedPayload = Encoding.Default.GetBytes($"{token.header}.{token.payload}");
+                            var encodedPayload = Encoding.Default.GetBytes($"{token.RawHeader}.{token.RawPayload}");
 
                             // Verify the JWT
                             bool result = provider.VerifyData(
                                 // Load the encoded payload
                                 encodedPayload, 0, encodedPayload.Length,
                                 // Load the signature
-                                token.signature.FromBase64Url(),
+                                token.RawSignature.FromBase64Url(),
                                 // Get the correct hasher
                                 (HashAlgorithmName)Data.Hashers((int)algType),
                                 // Define padding
@@ -145,13 +143,13 @@ namespace JWTLib
                         (hmac as HMAC).Key = HelperFunctions.HashHMACSecret((string)key);
 
                         // Get bytes from header . payload
-                        var compareTo = Encoding.Default.GetBytes($"{token.header}.{token.payload}");
+                        var compareTo = Encoding.Default.GetBytes($"{token.RawHeader}.{token.RawPayload}");
 
                         var newSign = hmac.ComputeHash(compareTo).ToBase64Url();
 
                         // Compute the hash and compare to signature in JWT
                         // If the same signature was generated...
-                        if (token.signature.CompareTo(newSign) == 0)
+                        if (token.RawSignature.CompareTo(newSign) == 0)
                             // JWT verified
                             return VerifyResults.Valid;
                         // Else...
@@ -182,9 +180,9 @@ namespace JWTLib
                 // Create the token
                 token = new Token()
                 {
-                    header    = JWT.Split('.')[0], // Pull the header from the JWT
-                    payload   = JWT.Split('.')[1], // Pull the payload from the payload from the JWT
-                    signature = JWT.Split('.')[2]  // Pull the signature from the JWT
+                    RawHeader    = JWT.Split('.')[0], // Pull the header from the JWT
+                    RawPayload   = JWT.Split('.')[1], // Pull the payload from the payload from the JWT
+                    RawSignature = JWT.Split('.')[2]  // Pull the signature from the JWT
                 };
 
             // Return the token
@@ -203,7 +201,7 @@ namespace JWTLib
         private static dynamic GetDynamicPayload(IJWSToken token)
         {
             // Convert and return the payload as a dynamic
-            return JsonSerializer.Deserialize<dynamic>(Encoding.Default.GetString(token.payload.FromBase64Url()));
+            return JsonConvert.DeserializeObject<dynamic>(Encoding.Default.GetString(token.RawPayload.FromBase64Url()));
         }
 
         // Private claim checking functions >>

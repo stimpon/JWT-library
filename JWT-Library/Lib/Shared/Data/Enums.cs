@@ -5,6 +5,18 @@ namespace JWTLib
 {
     // Required namespaces
     using System.ComponentModel;
+    using System.Runtime.Serialization;
+
+    /// <summary>
+    /// Contains token types
+    /// </summary>
+    public enum TokenTypes
+    {
+        /// <summary>
+        /// The standard type
+        /// </summary>
+        JWT
+    }
 
     /// <summary>
     /// Header Parameter Values for JWS
@@ -16,7 +28,7 @@ namespace JWTLib
         /// <summary>
         /// RSASSA-PKCS1-v1_5 using SHA256 (RECOMENDED)
         /// </summary>
-        [Description("SHA256")] // Describes the hasher to use
+        [Description("SHA256")]       // Describes the hasher to use
         RS256 = 0, // This alg will it's own hasher from Data
         /// <summary>
         /// RSASSA-PKCS1-v1_5 using SHA384
@@ -60,7 +72,8 @@ namespace JWTLib
         /// <summary>
         /// The RSA oaep
         /// </summary>
-        [Description("0")] // Describes the default encryption type to use with this alhorithm
+        [Description("A128GCM")]         // Describes the default encryption type to use with this alhorithm
+        [EnumMember(Value = "RSA-OAEP")] // Describe the string value of the algorithm
         RSA_OAEP = 0,
     }
 

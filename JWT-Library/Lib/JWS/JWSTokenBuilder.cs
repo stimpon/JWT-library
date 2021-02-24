@@ -6,11 +6,11 @@ namespace JWTLib
     // Required namespaces
     using System;
     using System.Text;
-    using System.Text.Json;
+    using Newtonsoft.Json;
     using System.Security.Cryptography;
 
     /// <summary>
-    /// Construct and build JWT tokens using JWS
+    /// Builder for creating JWT tokens using JWS
     /// </summary>
     public static class JWSTokenBuilder
     {
@@ -37,13 +37,13 @@ namespace JWTLib
             // Creates a default header based on the algorithm to use
             JWSHeader header = new JWSHeader()
             {
-                typ = "JWT",
-                alg = mode.ToString()
+                Type = TokenTypes.JWT,
+                Algorithm = mode
             };
             
             // Serialize and base64url convert the header and the payload
-            var serializedHeader  = JsonSerializer.Serialize(header).ToBase64Url();
-            var serializedPayload = JsonSerializer.Serialize(payload).ToBase64Url();
+            var serializedHeader  = JsonConvert.SerializeObject(header).ToBase64Url();
+            var serializedPayload = JsonConvert.SerializeObject(payload).ToBase64Url();
 
             // Check mode
             if ((int)mode >= (int)JWSAlgorithms.RS256 && (int)mode <= (int)JWSAlgorithms.RS512) // RSA Mode
@@ -79,9 +79,9 @@ namespace JWTLib
                 // Returned the creation result
                 return new Token()
                 {
-                    header = serializedHeader,
-                    payload = serializedPayload,
-                    signature = signature,
+                    RawHeader = serializedHeader,
+                    RawPayload = serializedPayload,
+                    RawSignature = signature,
                 };
             }
             // Else...
@@ -102,9 +102,9 @@ namespace JWTLib
                         // Returned the creation result
                         return new Token()
                         {
-                            header = serializedHeader,
-                            payload = serializedPayload,
-                            signature = signature,
+                            RawHeader = serializedHeader,
+                            RawPayload = serializedPayload,
+                            RawSignature = signature,
                         };
                     }
                 }

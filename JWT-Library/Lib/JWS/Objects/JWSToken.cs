@@ -4,47 +4,56 @@
 namespace JWTLib
 {
     // Requiren namespaces
-    using System.Text.Json.Serialization;
+    using Newtonsoft.Json;
 
     /// <summary>
-    /// This is an implementation of the <see cref="IJWSToken"/> interface, that makes is easy for the<br/>
-    /// developer to work with the JWT.
+    /// This is a standard implementation of the <see cref="IJWSToken"/>
     /// </summary>
-    public class JWSToken<H, P> : IJWSToken where P : class, new()
-                                            where H : IJWSHeader
+    /// <typeparam name="H">The header type</typeparam>
+    /// <typeparam name="P">The payload type</typeparam>
+    /// <seealso cref="JWTLib.IJWSToken" />
+    public class JWSToken<H, P> : IJWSToken where H : IJWSHeader 
+                                            where P : class, new()                                           
     {
-        #region Consumer properties
+        #region Non Json properties
 
         /// <summary>
-        /// Gets the decoded header.
+        /// Returns the <see cref="IJWSToken.RawHeader"/> as the correct object
         /// </summary>
         [JsonIgnore]
-        public H Header { get => JWSTokenHandler.ResolveHeader<H>(this.header); }
+        public H Header 
+            // Resolve the header into the correct object
+            => JWSTokenHandler.ResolveHeader<H>(this.RawHeader);
 
         /// <summary>
-        /// Gets the decoded payload.
+        /// Returns the <see cref="IJWSToken.RawPayload"/> as the correct object
         /// </summary>
         [JsonIgnore]
-        public P Payload { get => JWSTokenHandler.ResolvePayload<P>(this.payload); }
+        public P Payload
+            // Resolve the payload into the correct object
+            => JWSTokenHandler.ResolvePayload<P>(this.RawPayload);
 
         #endregion
 
         #region Json properties
 
         /// <summary>
-        /// Gets or sets the header.
+        /// The base64url encoded header.
         /// </summary>
-        public string header { get; set; }
+        [JsonProperty(PropertyName = "header")]
+        public string RawHeader { get; set; }
 
         /// <summary>
-        /// Gets or sets the payload.
+        /// The base64url encoded payload.
         /// </summary>
-        public string payload { get; set; }
+        [JsonProperty(PropertyName = "payload")]
+        public string RawPayload { get; set; }
 
         /// <summary>
-        /// Gets or sets the signature.
+        /// The base64url encoded signature
         /// </summary>
-        public string signature { get; set; }
+        [JsonProperty(PropertyName = "signature")]
+        public string RawSignature { get; set; }
 
         #endregion
 
@@ -54,7 +63,13 @@ namespace JWTLib
         /// Returns the JWT token in it's correct string format (header.payload.signature)
         /// </summary>
         [JsonIgnore]
-        public string JWT => $"{header}.{payload}.{signature}";
+        public string JWT => $"{RawHeader}.{RawPayload}.{RawSignature}";
+
+        /// <summary>
+        /// Returns this instance as a json object
+        /// </summary>
+        [JsonIgnore]
+        public string Json => JsonConvert.SerializeObject(this);
 
         #endregion
     }

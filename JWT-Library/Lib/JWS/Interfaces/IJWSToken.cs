@@ -1,28 +1,29 @@
-﻿namespace JWTLib
+﻿/// <summary>
+/// Root namespace
+/// </summary>
+namespace JWTLib
 {
     /// <summary>
-    /// Standard layout for a JWT token
+    /// Describes all the required parts of a JWT using JWS
     /// </summary>
-    /// <typeparam name="H">Header type</typeparam>
-    /// <typeparam name="P">Payload type</typeparam>
     public interface IJWSToken
     {
         #region Json properties
 
         /// <summary>
-        /// Gets or sets the header.
+        /// The base64url encoded header.
         /// </summary>
-        public string header { get; set; }
+        public string RawHeader { get; set; }
 
         /// <summary>
-        /// Gets or sets the payload.
+        /// The base64url encoded payload.
         /// </summary>
-        public string payload { get; set; }
+        public string RawPayload { get; set; }
 
         /// <summary>
-        /// Gets or sets the signature.
+        /// The base64url encoded signature
         /// </summary>
-        public string signature { get; set; }
+        public string RawSignature { get; set; }
 
         #endregion
     }

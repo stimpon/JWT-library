@@ -37,7 +37,7 @@ namespace JWTLib
             try
             {
                 // Extract header as JWE header
-                var protHeader = JsonSerializer.Deserialize<JWEHeader>(Encoding.Default.GetString(
+                var protHeader = JsonSerializer.Deserialize<JWEProtectedHeader>(Encoding.Default.GetString(
                     token.ProtectedHeader.FromBase64Url()));
 
                 #region Decrypt encryption key
@@ -45,7 +45,7 @@ namespace JWTLib
                 // Check algorithm used in JWE
 
                 // RSA
-                if ((int)protHeader.alg == 0)
+                if ((int)protHeader.Algorithm == 0)
                 {
                     /// RSA MODE
                      
@@ -71,13 +71,13 @@ namespace JWTLib
                 // Check encryption algorithm used when encrypting the payload
 
                 // AesGCM
-                if((int)protHeader.enc >= 0 && (int)protHeader.enc <= 1)
+                if((int)protHeader.EncryptionMode >= 0 && (int)protHeader.EncryptionMode <= 1)
                 {
                     /// AesGcm MODE
                     
                     // Get the key size from attriute
                     var dec = int.Parse(
-                        EnumHelpers.ExtractDescriptor(protHeader.enc));
+                        EnumHelpers.ExtractDescriptor(protHeader.EncryptionMode));
 
                     // Span for the plain text
                     byte[] decryptedText = new byte[token.Ciphertext.FromBase64Url().Length];

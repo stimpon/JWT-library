@@ -4,36 +4,31 @@
 namespace JWTLib
 {
     // Required namespaces
-    using System;
-    using System.Text.Json.Serialization;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
 
     /// <summary>
-    /// Header object, can be expanded with more attributes
+    /// A default implementation of the <see cref="IJWSHeader"/> interface
     /// </summary>
     public partial class JWSHeader : IJWSHeader
     {
+        #region Json properties
+
         /// <summary>
         /// <see cref="IHeader.typ"/>
         /// </summary>
-        [JsonPropertyName("typ")]
-        public string typ { get; set; }
+        [JsonProperty(PropertyName = "typ")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public TokenTypes Type { get; set; }
 
         /// <summary>
         /// <see cref="IHeader.alg"/>
         /// </summary>
-        [JsonPropertyName("alg")]
-        public string alg { get; set; }
+        [JsonProperty(PropertyName = "alg")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public JWSAlgorithms Algorithm { get; set; }
 
-        /// <summary>
-        /// Converts the string algorithm name into a usable enum
-        /// </summary>
-        [JsonIgnore]
-        public JWSAlgorithms Algorithm { get { 
-                // Return the Algorithm as the correct enum, if invalid, return null
-                try   { return (JWSAlgorithms)Enum.Parse(typeof(JWSAlgorithms), this.alg); } 
-                catch { return (JWSAlgorithms)(-100); } 
-            } 
-        }
+        #endregion
 
     }
 }

@@ -4,18 +4,18 @@
 namespace JWTLib
 {
     /// <summary>
-    /// Interface that contains properties that must exist in a JWS header
+    /// Interface that descbribes all the required parts of a JWT using JWS
     /// </summary>
     public interface IJWSHeader
     {
         /// <summary>
-        /// <see cref="IHeader.typ"/>
+        /// The token type
         /// </summary>
-        public string typ { get; set; }
+        public TokenTypes Type { get; set; }
 
         /// <summary>
-        /// <see cref="IHeader.alg"/>
+        /// The algorithm
         /// </summary>
-        public string alg { get; set; }
+        public JWSAlgorithms Algorithm { get; set; }
     }
 }
