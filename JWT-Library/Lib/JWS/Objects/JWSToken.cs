@@ -9,7 +9,7 @@ namespace JWTLib
     /// <summary>
     /// This is a standard implementation of the <see cref="IJWSToken"/>
     /// </summary>
-    /// <typeparam name="H">The header type</typeparam>
+    /// <typeparam name="H">The header type, default header: <see cref="JWSHeader"/> should be used</typeparam>
     /// <typeparam name="P">The payload type</typeparam>
     /// <seealso cref="JWTLib.IJWSToken" />
     public class JWSToken<H, P> : IJWSToken where H : IJWSHeader 
@@ -33,6 +33,18 @@ namespace JWTLib
             // Resolve the payload into the correct object
             => JWSTokenHandler.ResolvePayload<P>(this.RawPayload);
 
+        /// <summary>
+        /// Returns the JWT token in it's correct string format (header.payload.signature)
+        /// </summary>
+        [JsonIgnore]
+        public string JWT => $"{RawHeader}.{RawPayload}.{RawSignature}";
+
+        /// <summary>
+        /// Returns this instance as a json object
+        /// </summary>
+        [JsonIgnore]
+        public string Json => JsonConvert.SerializeObject(this);
+
         #endregion
 
         #region Json properties
@@ -54,22 +66,6 @@ namespace JWTLib
         /// </summary>
         [JsonProperty(PropertyName = "signature")]
         public string RawSignature { get; set; }
-
-        #endregion
-
-        #region Getters
-
-        /// <summary>
-        /// Returns the JWT token in it's correct string format (header.payload.signature)
-        /// </summary>
-        [JsonIgnore]
-        public string JWT => $"{RawHeader}.{RawPayload}.{RawSignature}";
-
-        /// <summary>
-        /// Returns this instance as a json object
-        /// </summary>
-        [JsonIgnore]
-        public string Json => JsonConvert.SerializeObject(this);
 
         #endregion
     }

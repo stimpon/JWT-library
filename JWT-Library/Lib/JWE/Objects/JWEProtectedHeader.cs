@@ -5,10 +5,10 @@
     using Newtonsoft.Json.Converters;
 
     /// <summary>
-    /// Default protected header for a JWT using JWE
+    /// A default implementation of the <see cref="IJWEProtectedHeader"/>
     /// </summary>
     /// <seealso cref="JWTLib.IJWEHeader" />
-    public partial class JWEProtectedHeader
+    public partial class JWEProtectedHeader : IJWEProtectedHeader
     {
         /// <summary>
         /// <see cref="IJWEHeader.typ"/>

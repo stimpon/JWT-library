@@ -8,10 +8,12 @@ namespace JWTLib
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// This gets returned when a JWT is created with JWE
+    /// A Default implementation of the <see cref="IJWEToken"/>
     /// </summary>
-    public class JWEToken
+    public class JWEToken<PH> : IJWEToken where PH: IJWEProtectedHeader
     {
+        #region Json properties
+
         /// <summary>
         /// Gets or sets the protected header.
         /// </summary>
@@ -38,6 +40,10 @@ namespace JWTLib
         [JsonPropertyName("tag")]
         public string Tag { get; set; }
 
+        #endregion
+
+        #region Non Json properties
+
         /// <summary>
         /// Gets or sets the jwe.
         /// </summary>
@@ -50,5 +56,7 @@ namespace JWTLib
         /// <returns></returns>
         [JsonIgnore]
         public string Json { get { try { return JsonSerializer.Serialize(this); } catch { return null; } }}
+
+        #endregion
     }
 }

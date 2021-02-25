@@ -14,7 +14,6 @@ namespace JWTLib
     /// </summary>
     public static class JWETokenBuilder
     {
-
         /// <summary>
         /// Builds the token.
         /// </summary>
@@ -25,7 +24,8 @@ namespace JWTLib
         /// </param>
         /// <param name="serializePayload">If the payload is an object and needs to be serialized, set to true</param>
         /// <returns></returns>
-        public static JWEToken BuildToken(JWEAlgorithms mode, object payload, object key, bool serializePayload = false)
+        public static IJWEToken BuildToken<Token>(JWEAlgorithms mode, object payload, object key, bool serializePayload = false)
+            where Token: IJWEToken, new()
         {
             // If the payload is empty...
             if (payload == null) throw new Exception("No payload has been set");
@@ -86,9 +86,6 @@ namespace JWTLib
                         // Encrypt the payload and get the authentication tag
                         encryptor.Encrypt(nonceSpan, payloadSpan, cipherTextSpan, tagSpan, protectedSpan);
 
-                        // Create a new token and assign it null
-                        JWEToken token = null;
-
                         // Create a new provider
                         using (var provider = new RSACryptoServiceProvider())
                         {
@@ -96,7 +93,7 @@ namespace JWTLib
                             provider.ImportParameters((RSAParameters)key);
 
                             // Create JWE Result
-                            token = new JWEToken
+                            return new Token
                             {
                                 ProtectedHeader = JsonConvert.SerializeObject(protectedHeader).ToBase64Url(),
                                 EncryptedKey    = provider.Encrypt(encryptorTuple.key, true).ToBase64Url(),
@@ -105,9 +102,6 @@ namespace JWTLib
                                 Tag             = tag.ToBase64Url(),
                             };
                         }
-
-                        // Return the JWE
-                        return token;
                     }
                     // If build failed...
                     catch (Exception ex) { throw new Exception(ex.Message); } // Return error
