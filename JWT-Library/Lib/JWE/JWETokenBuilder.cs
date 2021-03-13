@@ -24,7 +24,7 @@ namespace JWTLib
         /// </param>
         /// <param name="serializePayload">If the payload is an object and needs to be serialized, set to true</param>
         /// <returns></returns>
-        public static IJWEToken BuildToken<Token>(JWEAlgorithms mode, object payload, object key, bool serializePayload = false)
+        public static Token BuildToken<Token>(JWEAlgorithms mode, object payload, object key, bool serializePayload = false)
             where Token: IJWEToken, new()
         {
             // If the payload is empty...

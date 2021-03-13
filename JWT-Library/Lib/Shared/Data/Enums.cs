@@ -28,7 +28,7 @@ namespace JWTLib
         /// <summary>
         /// RSASSA-PKCS1-v1_5 using SHA256 (RECOMENDED)
         /// </summary>
-        [Description("SHA256")]       // Describes the hasher to use
+        [Description("SHA256")] // Describes the hasher to use
         RS256 = 0, // This alg will it's own hasher from Data
         /// <summary>
         /// RSASSA-PKCS1-v1_5 using SHA384

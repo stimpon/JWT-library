@@ -142,7 +142,7 @@ namespace JWTLib
             try
             {
                 // Extract header as JWE header
-                var protHeader = JsonConvert.DeserializeObject<IJWEProtectedHeader>(Encoding.Default.GetString(
+                var protHeader = JsonConvert.DeserializeObject<JWEProtectedHeader>(Encoding.Default.GetString(
                     token.ProtectedHeader.FromBase64Url()));
 
                 #region Decrypt encryption key
